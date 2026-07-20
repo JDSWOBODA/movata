@@ -1,22 +1,46 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/contexts/SessionContext";
 import { Logo } from "@/components/runstory/Logo";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { product } from "@/lib/brand";
 
 const Login = () => {
   const { user, authError } = useSession();
   const navigate = useNavigate();
   const location = useLocation();
+  const authContainerRef = useRef<HTMLDivElement>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const redirectTo = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? "/dashboard";
 
   useEffect(() => {
     if (user) navigate(redirectTo, { replace: true });
   }, [navigate, redirectTo, user]);
+
+  useEffect(() => {
+    const container = authContainerRef.current;
+    if (!container) return;
+
+    const updatePasswordInputs = () => {
+      const inputs = container.querySelectorAll<HTMLInputElement>(
+        'input[type="password"], input[data-runstory-password="true"], input[autocomplete="current-password"], input[autocomplete="new-password"]',
+      );
+      inputs.forEach((input) => {
+        input.dataset.runstoryPassword = "true";
+        input.type = showPassword ? "text" : "password";
+      });
+    };
+
+    updatePasswordInputs();
+    const observer = new MutationObserver(updatePasswordInputs);
+    observer.observe(container, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [showPassword]);
 
   return (
     <main className="min-h-screen bg-[#fbfaf6] px-4 py-8 text-stone-950">
@@ -45,7 +69,7 @@ const Login = () => {
               {authError ? (
                 <p role="alert" className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{authError}</p>
               ) : null}
-              <div className="mt-6 rounded-[1.5rem] border border-stone-200 p-4">
+              <div ref={authContainerRef} className="mt-6 rounded-[1.5rem] border border-stone-200 p-4">
                 <Auth
                   supabaseClient={supabase}
                   providers={[]}
@@ -68,6 +92,18 @@ const Login = () => {
                   magicLink
                   redirectTo={`${window.location.origin}/dashboard`}
                 />
+                <div className="mt-3 flex items-center justify-between rounded-2xl bg-stone-50 px-3 py-2.5">
+                  <Label htmlFor="show-password" className="flex cursor-pointer items-center gap-2 text-sm font-medium text-stone-700">
+                    {showPassword ? <EyeOff className="h-4 w-4 text-emerald-700" /> : <Eye className="h-4 w-4 text-stone-500" />}
+                    Show password
+                  </Label>
+                  <Switch
+                    id="show-password"
+                    checked={showPassword}
+                    onCheckedChange={setShowPassword}
+                    aria-label="Show password"
+                  />
+                </div>
               </div>
             </div>
           </section>
