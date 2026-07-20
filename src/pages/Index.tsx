@@ -13,50 +13,41 @@ import { product } from "@/lib/brand";
 import { formatDistance } from "@/lib/format";
 
 const HeroPreview = () => (
-  <div className="relative mx-auto max-w-xl lg:max-w-none">
-    <div className="absolute -right-3 -top-6 h-28 w-28 rounded-full bg-emerald-200/50 blur-3xl" />
-    <div className="relative rounded-[2rem] border border-stone-200 bg-white p-4 shadow-2xl shadow-stone-950/10 sm:p-5">
-      <div className="rounded-[1.5rem] bg-[#f4f1e8] p-4">
-        <div className="flex items-center justify-between">
+  <Link to="/maya" aria-label="Explore Maya Chen's public running profile" className="group relative mx-auto block w-full max-w-xl lg:max-w-none">
+    <div className="relative min-h-[540px] overflow-hidden rounded-[2rem] border border-stone-200 bg-stone-900 shadow-2xl shadow-stone-950/15 sm:min-h-[620px]">
+      <img
+        src="/assets/runstory-hero-runner.png"
+        alt="Runner moving along a mountain road at dawn"
+        className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
+        loading="eager"
+        fetchPriority="high"
+      />
+      <div className="absolute left-4 top-4 rounded-full border border-white/20 bg-stone-950/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur sm:left-6 sm:top-6">
+        Maya's running story
+      </div>
+      <div className="absolute right-4 top-4 rounded-[1.25rem] bg-[#fbfaf6] p-4 text-stone-950 shadow-xl sm:right-6 sm:top-6">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">This week</p>
+        <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">42.6 <span className="text-sm text-stone-500">mi</span></p>
+      </div>
+      <div className="absolute inset-x-4 bottom-4 rounded-[1.5rem] border border-white/20 bg-stone-950/85 p-5 text-white shadow-2xl backdrop-blur-md sm:inset-x-6 sm:bottom-6 sm:p-6">
+        <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Public profile</p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-tight text-stone-950">Maya Chen</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-200">Current streak</p>
+            <div className="mt-2 flex items-end gap-3">
+              <p className="font-mono text-7xl font-semibold leading-none tracking-[-0.08em] tabular-nums sm:text-8xl">{demoStreak.currentStreakDays}</p>
+              <p className="pb-2 text-sm leading-5 text-stone-200 sm:text-base">consecutive<br />days</p>
+            </div>
           </div>
-          <Badge className="rounded-full bg-emerald-700 text-white hover:bg-emerald-700">Live demo</Badge>
+          <ArrowRight className="mb-2 h-6 w-6 text-emerald-200 transition-transform group-hover:translate-x-1" />
         </div>
-        <div className="mt-5 grid grid-cols-[1fr_.8fr] gap-3">
-          <div className="rounded-[1.25rem] bg-emerald-700 p-5 text-white">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-50/75">Current streak</p>
-            <p className="mt-2 font-mono text-7xl font-semibold leading-none tracking-[-0.08em]">{demoStreak.currentStreakDays}</p>
-            <p className="mt-2 text-emerald-50">consecutive days</p>
-          </div>
-          <div className="space-y-3">
-            <StatCard label="Longest" value={demoStreak.longestStreakDays} detail="days" />
-            <StatCard label="Weekly avg" value={demoTotals.averageWeeklyMiles} detail="mi/week" />
-          </div>
-        </div>
-      </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-[1.25rem] border border-stone-200 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Fastest 5K</p>
-          <p className="mt-2 font-mono text-3xl font-semibold text-stone-950">19:02</p>
-          <p className="mt-1 text-sm text-stone-500">Prospect Park tune-up</p>
-        </div>
-        <div className="rounded-[1.25rem] border border-stone-200 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Longest run</p>
-          <p className="mt-2 font-mono text-3xl font-semibold text-stone-950">26.2 mi</p>
-          <p className="mt-1 text-sm text-stone-500">First marathon finish</p>
-        </div>
-      </div>
-      <div className="mt-4 overflow-hidden rounded-[1.25rem] border border-stone-200 p-3">
-        <div className="grid grid-cols-[repeat(14,minmax(0,1fr))] gap-1">
-          {Array.from({ length: 98 }, (_, index) => (
-            <span key={index} className={`h-3 rounded-[4px] ${index % 9 === 0 ? "bg-stone-100" : index % 5 === 0 ? "bg-emerald-200" : index % 4 === 0 ? "bg-emerald-500" : "bg-emerald-700"}`} />
-          ))}
+        <div className="mt-5 grid grid-cols-3 gap-3 border-t border-white/15 pt-4">
+          <div><p className="text-[10px] uppercase tracking-[0.16em] text-stone-400">Longest</p><p className="mt-1 font-mono text-lg font-semibold tabular-nums">{demoStreak.longestStreakDays}d</p></div>
+          <div><p className="text-[10px] uppercase tracking-[0.16em] text-stone-400">Fastest 5K</p><p className="mt-1 font-mono text-lg font-semibold tabular-nums">19:02</p></div>
+          <div><p className="text-[10px] uppercase tracking-[0.16em] text-stone-400">Lifetime</p><p className="mt-1 font-mono text-lg font-semibold tabular-nums">8,642 mi</p></div>
         </div>
       </div>
     </div>
-  </div>
+  </Link>
 );
 
 const Index = () => {
