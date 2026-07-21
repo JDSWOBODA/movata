@@ -1,4 +1,4 @@
-import type { NormalizedActivity } from "./runstory-types";
+import type { NormalizedActivity } from "./movata-types";
 
 export interface DuplicateCandidate {
   activityId: string;

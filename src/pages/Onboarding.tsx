@@ -3,8 +3,8 @@ import { ArrowRight, Check, DollarSign, FileUp, Pencil, Sparkles } from "lucide-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ProviderGrid } from "@/components/runstory/ProviderGrid";
-import { Logo } from "@/components/runstory/Logo";
+import { ProviderGrid } from "@/components/movata/ProviderGrid";
+import { Logo } from "@/components/movata/Logo";
 import { product } from "@/lib/brand";
 
 const Onboarding = () => (
@@ -19,7 +19,7 @@ const Onboarding = () => (
       <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr]">
         <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm sm:p-8 lg:sticky lg:top-24 lg:h-fit">
           <Sparkles className="h-8 w-8 text-emerald-700" />
-          <h1 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl">Reserve your RunStory URL.</h1>
+          <h1 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl">Reserve your Movata URL.</h1>
           <p className="mt-4 leading-7 text-stone-500">Phase 2 will persist this onboarding flow to Supabase. The structure is ready for username validation, profile creation, provider connection, and first import.</p>
           <div className="mt-6 space-y-3 text-sm text-stone-600">
             {["Create an account or sign in", "Reserve a unique public username", "Connect Strava after the $3/year sync unlock", "Import CSV or add manual runs for free"].map((step) => (

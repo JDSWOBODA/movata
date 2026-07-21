@@ -3,10 +3,10 @@ import { Activity, AlertTriangle, CalendarDays, CheckCircle2, FileUp, LogOut, Se
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Logo } from "@/components/runstory/Logo";
-import { ProviderGrid } from "@/components/runstory/ProviderGrid";
-import { RunCard } from "@/components/runstory/RunCard";
-import { StatCard } from "@/components/runstory/StatCard";
+import { Logo } from "@/components/movata/Logo";
+import { ProviderGrid } from "@/components/movata/ProviderGrid";
+import { RunCard } from "@/components/movata/RunCard";
+import { StatCard } from "@/components/movata/StatCard";
 import { useSession } from "@/contexts/SessionContext";
 import { demoActivities, demoStreak, demoTotals, specialRuns } from "@/lib/sample-data";
 

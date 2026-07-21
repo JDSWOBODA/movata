@@ -3,11 +3,11 @@ import { ArrowRight, BarChart3, CalendarCheck2, CheckCircle2, ChevronRight, Glob
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { SiteHeader } from "@/components/runstory/SiteHeader";
-import { HeatMap } from "@/components/runstory/HeatMap";
-import { RunCard } from "@/components/runstory/RunCard";
-import { ProviderGrid } from "@/components/runstory/ProviderGrid";
-import { StatCard } from "@/components/runstory/StatCard";
+import { SiteHeader } from "@/components/movata/SiteHeader";
+import { HeatMap } from "@/components/movata/HeatMap";
+import { RunCard } from "@/components/movata/RunCard";
+import { ProviderGrid } from "@/components/movata/ProviderGrid";
+import { StatCard } from "@/components/movata/StatCard";
 import { communityProfiles, demoActivities, demoProfile, demoRecords, demoStreak, demoTotals, specialRuns } from "@/lib/sample-data";
 import { product } from "@/lib/brand";
 import { formatDistance } from "@/lib/format";
@@ -16,7 +16,7 @@ const HeroPreview = () => (
   <Link to="/maya" aria-label="Explore Maya Chen's public running profile" className="group relative mx-auto block w-full max-w-xl lg:max-w-none">
     <div className="relative min-h-[540px] overflow-hidden rounded-[2rem] border border-stone-200 bg-stone-900 shadow-2xl shadow-stone-950/15 sm:min-h-[620px]">
       <img
-        src="/assets/runstory-hero-runner.png"
+        src="/assets/movata-hero-runner.png"
         alt="Runner moving along a mountain road at dawn"
         className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
         loading="eager"
@@ -56,7 +56,7 @@ const Index = () => {
       <SiteHeader />
 
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/assets/runstory-route-texture.png')] bg-cover bg-center opacity-[0.11]" />
+        <div className="absolute inset-0 bg-[url('/assets/movata-route-texture.png')] bg-cover bg-center opacity-[0.11]" />
         <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.02fr_.98fr] lg:items-center lg:px-8">
           <div>
             <Badge className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-800 hover:bg-emerald-50">{product.tagline}</Badge>
@@ -107,7 +107,7 @@ const Index = () => {
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {[
-            ["01", "Connect your apps", "Strava is the first direct integration behind a $3/year sync unlock. CSV and manual entry keep RunStory usable for everyone."],
+            ["01", "Connect your apps", "Strava is the first direct integration behind a $3/year sync unlock. CSV and manual entry keep Movata usable for everyone."],
             ["02", "Choose your highlights", "Mark favorites, races, scenic miles, tough days, and featured runs. Hide anything that should stay private."],
             ["03", "Share your running story", `Publish a custom URL like ${product.domain}/maya with Open Graph metadata and share-card graphics.`],
           ].map(([number, title, copy]) => (
@@ -191,7 +191,7 @@ const Index = () => {
             <div>
               <Sparkles className="h-8 w-8 text-emerald-300" />
               <h2 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl">Create a home for every mile.</h2>
-              <p className="mt-4 max-w-2xl text-stone-300">RunStory keeps the MVP focused: public profile links, share tools, downloadable milestone cards, and profile discovery — without a distracting social feed.</p>
+              <p className="mt-4 max-w-2xl text-stone-300">Movata keeps the MVP focused: public profile links, share tools, downloadable milestone cards, and profile discovery — without a distracting social feed.</p>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <Button asChild className="rounded-full bg-white text-stone-950 hover:bg-stone-100"><Link to="/onboarding">Create Your Run Page</Link></Button>
                 <Button asChild variant="outline" className="rounded-full border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white"><Link to="/dashboard">View dashboard scaffold</Link></Button>

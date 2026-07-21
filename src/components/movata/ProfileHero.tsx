@@ -1,6 +1,6 @@
 import { Share2, Heart, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { RunnerProfile, StreakSummary } from "@/lib/runstory-types";
+import type { RunnerProfile, StreakSummary } from "@/lib/movata-types";
 import { demoTotals } from "@/lib/sample-data";
 import { formatDistance } from "@/lib/format";
 import { StatCard } from "./StatCard";
@@ -12,7 +12,7 @@ interface ProfileHeroProps {
 
 export const ProfileHero = ({ profile, streak }: ProfileHeroProps) => (
   <section className="relative overflow-hidden rounded-b-[2rem] border-b border-stone-200 bg-[#fbfaf6] sm:rounded-b-[3rem]">
-    <div className="absolute inset-0 bg-[url('/assets/runstory-route-texture.png')] bg-cover bg-center opacity-[0.12]" />
+    <div className="absolute inset-0 bg-[url('/assets/movata-route-texture.png')] bg-cover bg-center opacity-[0.12]" />
     <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <div className="grid gap-8 lg:grid-cols-[1.05fr_.95fr] lg:items-end">
         <div>

@@ -1,6 +1,6 @@
 import { LockKeyhole } from "lucide-react";
-import { Logo } from "@/components/runstory/Logo";
-import { StatCard } from "@/components/runstory/StatCard";
+import { Logo } from "@/components/movata/Logo";
+import { StatCard } from "@/components/movata/StatCard";
 import { useSession } from "@/contexts/SessionContext";
 
 const adminEmails: string[] = [];
@@ -26,7 +26,7 @@ const Admin = () => {
     <main className="min-h-screen bg-[#fbfaf6] text-stone-950">
       <header className="border-b border-stone-200 bg-white px-4 py-3 sm:px-6 lg:px-8"><div className="mx-auto max-w-7xl"><Logo /></div></header>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-semibold tracking-tight">RunStory admin</h1>
+        <h1 className="text-4xl font-semibold tracking-tight">Movata admin</h1>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <StatCard label="Total users" value="—" detail="wired in Phase 6" />
           <StatCard label="Published profiles" value="—" detail="discoverability" />

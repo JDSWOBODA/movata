@@ -148,7 +148,7 @@ export const ProviderGrid = () => {
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-stone-100">{iconFor(provider.status, isConnected)}</span>
                 <div className="min-w-0">
                   <h3 className="font-semibold text-stone-950">{provider.label}</h3>
-                  <p className="text-sm text-stone-500">{isConnected ? "Securely linked to your RunStory" : provider.detail}</p>
+                  <p className="text-sm text-stone-500">{isConnected ? "Securely linked to your Movata" : provider.detail}</p>
                 </div>
               </div>
               <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider ${isConnected ? "bg-emerald-700 text-white" : provider.status === "coming_soon" ? "bg-stone-100 text-stone-500" : "bg-emerald-50 text-emerald-800"}`}>

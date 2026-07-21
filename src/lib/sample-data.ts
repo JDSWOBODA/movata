@@ -1,5 +1,5 @@
 import { product } from "./brand";
-import type { NormalizedActivity, RunnerProfile, StreakSettings } from "./runstory-types";
+import type { NormalizedActivity, RunnerProfile, StreakSettings } from "./movata-types";
 import { calculateStreakSummary } from "./streaks";
 
 const MS_PER_DAY = 86_400_000;
@@ -74,7 +74,7 @@ const previousLongStreak = Array.from({ length: 365 }, (_, index) => {
 export const demoProfile: RunnerProfile = {
   username: "maya",
   displayName: "Maya Chen",
-  coverUrl: "/assets/runstory-demo-cover.png",
+  coverUrl: "/assets/movata-demo-cover.png",
   location: "Brooklyn, New York",
   bio: "Everyday runner, weekend marathoner, and collector of quiet morning miles. I run for consistency first — speed follows.",
   homeTimezone: "America/New_York",
@@ -113,7 +113,7 @@ export const specialRuns: NormalizedActivity[] = [
     bestPaceSecondsPerKm: 315,
     highlightTypes: ["scenic", "favorite"],
     note: "Fog lifted right as the ridge opened. The kind of run that makes the week feel bigger.",
-    photos: ["/assets/runstory-route-texture.png"],
+    photos: ["/assets/movata-route-texture.png"],
   }),
   makeRun("long-run", -12, 30580, 9_560, "East River sunrise progression", {
     location: "Brooklyn waterfront",

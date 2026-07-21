@@ -1,6 +1,6 @@
 import { CalendarDays, MapPin, Mountain, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { NormalizedActivity } from "@/lib/runstory-types";
+import type { NormalizedActivity } from "@/lib/movata-types";
 import { formatDate, formatDistance, formatDuration, formatPace } from "@/lib/format";
 
 interface RunCardProps {

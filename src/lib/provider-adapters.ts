@@ -1,4 +1,4 @@
-import type { NormalizedActivity, ProviderAdapter } from "./runstory-types";
+import type { NormalizedActivity, ProviderAdapter } from "./movata-types";
 
 const baseActivity = (input: Partial<NormalizedActivity>): NormalizedActivity => ({
   id: input.id ?? crypto.randomUUID(),

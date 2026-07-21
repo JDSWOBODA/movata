@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { buildActivityByDate } from "@/lib/streaks";
-import type { NormalizedActivity } from "@/lib/runstory-types";
+import type { NormalizedActivity } from "@/lib/movata-types";
 import { formatDistance } from "@/lib/format";
 
 interface HeatMapProps {

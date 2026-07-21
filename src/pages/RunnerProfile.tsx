@@ -5,11 +5,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Logo } from "@/components/runstory/Logo";
-import { ProfileHero } from "@/components/runstory/ProfileHero";
-import { HeatMap } from "@/components/runstory/HeatMap";
-import { RunCard } from "@/components/runstory/RunCard";
-import { StatCard } from "@/components/runstory/StatCard";
+import { Logo } from "@/components/movata/Logo";
+import { ProfileHero } from "@/components/movata/ProfileHero";
+import { HeatMap } from "@/components/movata/HeatMap";
+import { RunCard } from "@/components/movata/RunCard";
+import { StatCard } from "@/components/movata/StatCard";
 import { demoActivities, demoMilestones, demoProfile, demoRecords, demoStreak, specialRuns } from "@/lib/sample-data";
 import { findLikelyDuplicates } from "@/lib/duplicates";
 import { formatDistance } from "@/lib/format";
@@ -98,7 +98,7 @@ const RunnerProfile = () => {
           <Logo className="justify-center" />
           <div className="mx-auto mt-8 flex h-16 w-16 items-center justify-center rounded-full bg-stone-100"><Globe2 className="h-7 w-7 text-stone-400" /></div>
           <h1 className="mt-5 text-3xl font-semibold tracking-tight text-stone-950">Runner not found</h1>
-          <p className="mt-3 text-stone-500">No public RunStory profile exists for @{username}. Create your own memorable URL before it is taken.</p>
+          <p className="mt-3 text-stone-500">No public Movata profile exists for @{username}. Create your own memorable URL before it is taken.</p>
           <Button asChild className="mt-6 rounded-full bg-emerald-700 text-white hover:bg-emerald-800"><Link to="/onboarding">Reserve your profile URL</Link></Button>
         </div>
       </main>

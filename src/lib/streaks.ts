@@ -1,4 +1,4 @@
-import type { NormalizedActivity, StreakSettings, StreakSummary } from "./runstory-types";
+import type { NormalizedActivity, StreakSettings, StreakSummary } from "./movata-types";
 
 const MS_PER_DAY = 86_400_000;
 

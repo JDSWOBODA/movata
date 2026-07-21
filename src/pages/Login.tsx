@@ -6,7 +6,7 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/contexts/SessionContext";
-import { Logo } from "@/components/runstory/Logo";
+import { Logo } from "@/components/movata/Logo";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { product } from "@/lib/brand";
@@ -20,10 +20,10 @@ const PasswordVisibilityToggle = ({ containerRef }: { containerRef: RefObject<HT
 
     const updatePasswordInputs = () => {
       const inputs = container.querySelectorAll<HTMLInputElement>(
-        'input[type="password"], input[data-runstory-password="true"], input[autocomplete="current-password"], input[autocomplete="new-password"]',
+        'input[type="password"], input[data-movata-password="true"], input[autocomplete="current-password"], input[autocomplete="new-password"]',
       );
       inputs.forEach((input) => {
-        input.dataset.runstoryPassword = "true";
+        input.dataset.movataPassword = "true";
         input.type = showPassword ? "text" : "password";
       });
     };
