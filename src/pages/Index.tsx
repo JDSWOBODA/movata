@@ -61,7 +61,7 @@ const Index = () => {
           <div>
             <Badge className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-800 hover:bg-emerald-50">{product.tagline}</Badge>
             <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-[-0.06em] text-stone-950 sm:text-6xl lg:text-7xl">
-              Your running history deserves more than a feed.
+              Your running story deserves more than a feed.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-600 sm:text-xl">
               Connect your running apps, track your streak, celebrate your best miles, and create a public page that tells your complete running story.
