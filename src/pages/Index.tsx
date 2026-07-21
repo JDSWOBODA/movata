@@ -23,7 +23,7 @@ const HeroPreview = () => (
         fetchPriority="high"
       />
       <div className="absolute left-4 top-4 rounded-full border border-white/20 bg-stone-950/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur sm:left-6 sm:top-6">
-        Maya's running story
+        Dylan's running story
       </div>
       <div className="absolute right-4 top-4 rounded-[1.25rem] bg-[#fbfaf6] p-4 text-stone-950 shadow-xl sm:right-6 sm:top-6">
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">This week</p>
