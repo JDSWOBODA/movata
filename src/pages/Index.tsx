@@ -13,7 +13,7 @@ import { product } from "@/lib/brand";
 import { formatDistance } from "@/lib/format";
 
 const HeroPreview = () => (
-  <Link to="/maya" aria-label="Explore Maya Chen's public running profile" className="group relative mx-auto block w-full max-w-xl lg:max-w-none">
+  <Link to="/dylan" aria-label="Explore Dylan Rivera's public running profile" className="group relative mx-auto block w-full max-w-xl lg:max-w-none">
     <div className="relative min-h-[540px] overflow-hidden rounded-[2rem] border border-stone-200 bg-stone-900 shadow-2xl shadow-stone-950/15 sm:min-h-[620px]">
       <img
         src="/assets/movata-hero-runner.png"
@@ -125,7 +125,7 @@ const Index = () => {
           {[
             ["01", "Pick a run to celebrate", "Select a past race or activity and turn the result, photos, and memory behind it into a featured Spotlight."],
             ["02", "Add what is next", "Build a Bucket List from UltraSignup.com races and events you have already registered to run."],
-            ["03", "Bring in the bigger story", `Connect activities, share running or movement streaks, and publish it all at a memorable URL like ${product.domain}/maya.`],
+            ["03", "Bring in the bigger story", `Connect activities, share running or movement streaks, and publish it all at a memorable URL like ${product.domain}/dylan.`],
           ].map(([number, title, copy]) => (
             <div key={number} className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
               <p className="font-mono text-sm font-semibold text-emerald-700">{number}</p>
@@ -159,7 +159,7 @@ const Index = () => {
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">Example profile preview</p>
             <h2 className="mt-3 text-4xl font-semibold tracking-tight text-stone-950">Credible enough to share. Personal enough to keep.</h2>
           </div>
-          <Button asChild variant="outline" className="rounded-full border-stone-300 bg-white"><Link to="/maya">Open full demo <ChevronRight className="ml-1 h-4 w-4" /></Link></Button>
+          <Button asChild variant="outline" className="rounded-full border-stone-300 bg-white"><Link to="/dylan">Open full demo <ChevronRight className="ml-1 h-4 w-4" /></Link></Button>
         </div>
         <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
           <div className="flex gap-4 overflow-x-auto pb-3 lg:grid lg:grid-cols-2 lg:overflow-visible">
@@ -210,7 +210,7 @@ const Index = () => {
               <p className="mt-4 max-w-2xl text-stone-300">Begin with one past run, add the races ahead, then bring in the streaks and everyday movement that connect the whole story.</p>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <Button asChild className="rounded-full bg-white text-stone-950 hover:bg-stone-100"><Link to="/onboarding?intent=spotlight">Spotlight a Past Run</Link></Button>
-                <Button asChild variant="outline" className="rounded-full border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white"><Link to="/maya">Explore Maya's page</Link></Button>
+                <Button asChild variant="outline" className="rounded-full border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white"><Link to="/dylan">Explore Dylan's page</Link></Button>
               </div>
             </div>
             <div className="rounded-[1.5rem] bg-white/8 p-5">

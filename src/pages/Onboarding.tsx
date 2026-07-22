@@ -90,9 +90,9 @@ const Onboarding = () => {
                 <Label htmlFor="username">Username</Label>
                 <div className="mt-2 flex rounded-2xl border border-stone-200 bg-stone-50 px-3 py-2 focus-within:ring-2 focus-within:ring-emerald-700">
                   <span className="py-2 text-stone-500">{product.domain}/</span>
-                  <Input id="username" defaultValue="maya" className="border-0 bg-transparent shadow-none focus-visible:ring-0" />
+                  <Input id="username" defaultValue="dylan" className="border-0 bg-transparent shadow-none focus-visible:ring-0" />
                 </div>
-                <p className="mt-2 text-sm text-emerald-700">maya is available in the demo environment.</p>
+                <p className="mt-2 text-sm text-emerald-700">dylan is available in the demo environment.</p>
               </div>
               <Button asChild className="rounded-full bg-emerald-700 text-white hover:bg-emerald-800"><Link to="/login">Continue <ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
             </div>

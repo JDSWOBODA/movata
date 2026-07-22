@@ -22,7 +22,7 @@ export const ProfileHero = ({ profile, streak }: ProfileHeroProps) => (
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <div className="flex items-center gap-4">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-emerald-700 text-2xl font-semibold text-white shadow-sm">MC</div>
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-emerald-700 text-2xl font-semibold text-white shadow-sm">{profile.displayName.split(" ").map((name) => name[0]).join("").slice(0, 2)}</div>
                     <div>
                       <h1 className="text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">{profile.displayName}</h1>
                       <p className="mt-1 flex flex-wrap items-center gap-2 text-stone-500">

@@ -72,12 +72,12 @@ const previousLongStreak = Array.from({ length: 365 }, (_, index) => {
 });
 
 export const demoProfile: RunnerProfile = {
-  username: "maya",
-  displayName: "Maya Chen",
+  username: "dylan",
+  displayName: "Dylan Rivera",
   coverUrl: "/assets/movata-demo-cover.png",
-  location: "Brooklyn, New York",
-  bio: "Everyday runner, weekend marathoner, and collector of quiet morning miles. I run for consistency first — speed follows.",
-  homeTimezone: "America/New_York",
+  location: "Boulder, Colorado",
+  bio: "Trail runner, first-time ultrarunner, and collector of big mountain days. I share the miles that keep me curious and moving forward.",
+  homeTimezone: "America/Denver",
   preferredUnit: "mi",
   runningSince: "2018-04-14",
   accentColor: product.accent,
@@ -181,9 +181,20 @@ export const demoMilestones = [
   { date: "Today", title: `${demoStreak.currentStreakDays}-day active streak`, detail: "The current chapter is still being written." },
 ];
 
+export const upcomingActivities = [
+  { id: "silver-rush-50", title: "Silver Rush 50 Run", date: "July 11, 2026", location: "Leadville, Colorado", distance: "50 mi", detail: "Registered · Summer goal race" },
+  { id: "run-rabbit-run", title: "Run Rabbit Run 50", date: "September 12, 2026", location: "Steamboat Springs, Colorado", distance: "50 mi", detail: "Registered · First high-country 50" },
+];
+
+export const bucketListActivities = [
+  { id: "leadville-100", title: "Leadville Trail 100 Run", location: "Leadville, Colorado", distance: "100 mi", detail: "Dream race · Across the Sky" },
+  { id: "western-states-100", title: "Western States 100", location: "Olympic Valley to Auburn, California", distance: "100 mi", detail: "Dream race · Lottery hopeful" },
+  { id: "utmb", title: "UTMB Mont-Blanc", location: "Chamonix, France", distance: "106 mi", detail: "Someday · A lap around Mont Blanc" },
+];
+
 export const communityProfiles = [
   { name: "Leo", type: "New runner", streak: 14, detail: "First month of 5K training", miles: 37 },
-  { name: "Maya", type: "Run-streak athlete", streak: demoStreak.currentStreakDays, detail: "Every day, no drama", miles: 6755 },
+  { name: "Dylan", type: "Run-streak athlete", streak: demoStreak.currentStreakDays, detail: "Every day, no drama", miles: 6755 },
   { name: "Sam", type: "Marathon runner", streak: 62, detail: "Building toward Berlin", miles: 4820 },
   { name: "Ari", type: "Trail runner", streak: 31, detail: "Vert over pace", miles: 2990 },
   { name: "Nora", type: "Casual weekly runner", streak: 3, detail: "Three good mornings a week", miles: 894 },

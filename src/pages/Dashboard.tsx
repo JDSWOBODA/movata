@@ -21,7 +21,7 @@ const Dashboard = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <Logo />
           <div className="flex items-center gap-2">
-            <Button asChild variant="outline" className="hidden rounded-full border-stone-300 bg-white sm:inline-flex"><Link to="/maya">View public page</Link></Button>
+            <Button asChild variant="outline" className="hidden rounded-full border-stone-300 bg-white sm:inline-flex"><Link to="/dylan">View public page</Link></Button>
             <Button variant="ghost" className="rounded-full" onClick={() => void signOut()}><LogOut className="mr-2 h-4 w-4" />Sign out</Button>
           </div>
         </div>

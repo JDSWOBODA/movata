@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Copy, Download, Globe2, Lock, Share2 } from "lucide-react";
+import { Bookmark, CalendarDays, Copy, Download, Globe2, Lock, MapPin, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ import { ProfileHero } from "@/components/movata/ProfileHero";
 import { HeatMap } from "@/components/movata/HeatMap";
 import { RunCard } from "@/components/movata/RunCard";
 import { StatCard } from "@/components/movata/StatCard";
-import { demoActivities, demoMilestones, demoProfile, demoRecords, demoStreak, specialRuns } from "@/lib/sample-data";
+import { bucketListActivities, demoActivities, demoMilestones, demoProfile, demoRecords, demoStreak, specialRuns, upcomingActivities } from "@/lib/sample-data";
 import { findLikelyDuplicates } from "@/lib/duplicates";
 import { formatDistance } from "@/lib/format";
 import { product } from "@/lib/brand";
@@ -129,9 +129,52 @@ const RunnerProfile = () => {
         />
 
         <section>
-          <SectionHeader eyebrow="Run highlights" title="The miles Maya wants you to see first" copy="Favorite, fastest, longest, scenic, and personal-record runs are intentionally separated so the profile feels curated instead of feed-like." />
+          <SectionHeader eyebrow="Run highlights" title={`The miles ${demoProfile.displayName.split(" ")[0]} wants you to see first`} copy="Favorite, fastest, longest, scenic, and personal-record runs are intentionally separated so the profile feels curated instead of feed-like." />
           <div className="flex gap-4 overflow-x-auto pb-3 lg:grid lg:grid-cols-3 lg:overflow-visible">
             {featured.map((activity) => <RunCard key={activity.id} activity={activity} unit={demoProfile.preferredUnit} />)}
+          </div>
+        </section>
+
+        <section>
+          <SectionHeader eyebrow="What’s next" title="Upcoming starts and dream races" copy="Registered events stay separate from the big adventures Dylan hopes to earn a place at someday." />
+          <div className="grid gap-5 lg:grid-cols-2">
+            <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5 sm:p-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-700 text-white"><CalendarDays className="h-5 w-5" /></span>
+                <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-800">Upcoming</p><h3 className="text-2xl font-semibold tracking-tight text-stone-950">On the calendar</h3></div>
+              </div>
+              <div className="mt-5 space-y-3">
+                {upcomingActivities.map((activity) => (
+                  <article key={activity.id} className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div><h4 className="font-semibold text-stone-950">{activity.title}</h4><p className="mt-1 text-sm font-medium text-emerald-800">{activity.date}</p></div>
+                      <Badge className="rounded-full bg-emerald-700 text-white hover:bg-emerald-700">{activity.distance}</Badge>
+                    </div>
+                    <p className="mt-3 flex items-center gap-2 text-sm text-stone-500"><MapPin className="h-4 w-4 text-emerald-700" />{activity.location}</p>
+                    <p className="mt-2 text-xs font-medium uppercase tracking-[0.12em] text-stone-500">{activity.detail}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[1.75rem] border border-amber-200 bg-amber-50 p-5 sm:p-6">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-600 text-white"><Bookmark className="h-5 w-5" /></span>
+                <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">Bucket List</p><h3 className="text-2xl font-semibold tracking-tight text-stone-950">Dreaming big</h3></div>
+              </div>
+              <div className="mt-5 space-y-3">
+                {bucketListActivities.map((activity) => (
+                  <article key={activity.id} className="rounded-2xl border border-amber-100 bg-white p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <h4 className="font-semibold text-stone-950">{activity.title}</h4>
+                      <Badge variant="outline" className="rounded-full border-amber-300 bg-amber-50 text-amber-900">{activity.distance}</Badge>
+                    </div>
+                    <p className="mt-3 flex items-center gap-2 text-sm text-stone-500"><MapPin className="h-4 w-4 text-amber-700" />{activity.location}</p>
+                    <p className="mt-2 text-xs font-medium uppercase tracking-[0.12em] text-amber-800">{activity.detail}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -183,7 +226,7 @@ const RunnerProfile = () => {
               <StatCard label="Current streak runs" value={demoStreak.currentStreakRuns} />
               <StatCard label="Streak distance" value={formatDistance(demoStreak.currentStreakDistanceMeters, "mi", 0)} />
             </div>
-            <p className="mt-4 text-sm leading-6 text-stone-500">A qualifying day is one completed run of at least one mile in Maya’s home time zone. Planned workouts are not counted unless imported as completed activities.</p>
+            <p className="mt-4 text-sm leading-6 text-stone-500">A qualifying day is one completed run of at least one mile in Dylan’s home time zone. Planned workouts are not counted unless imported as completed activities.</p>
           </div>
           <div className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">Running timeline</p>
@@ -216,7 +259,7 @@ const RunnerProfile = () => {
               <p className="mt-8 text-lg text-stone-500">Current streak</p>
               <p className="font-mono text-7xl font-semibold tracking-[-0.08em] text-emerald-800">{demoStreak.currentStreakDays}</p>
               <p className="text-xl font-semibold">consecutive days</p>
-              <p className="mt-8 text-sm text-stone-500">Maya Chen · {new Date().toLocaleDateString()}</p>
+              <p className="mt-8 text-sm text-stone-500">{demoProfile.displayName} · {new Date().toLocaleDateString()}</p>
             </div>
           </div>
         </section>
@@ -229,7 +272,7 @@ const RunnerProfile = () => {
       </div>
 
       <div className="sticky bottom-3 z-30 mx-auto mb-3 flex w-[calc(100%-1.5rem)] max-w-md justify-center rounded-full border border-stone-200 bg-white/95 p-2 shadow-lg backdrop-blur sm:hidden">
-        <Button className="flex-1 rounded-full bg-emerald-700 text-white hover:bg-emerald-800" onClick={() => void shareProfile()}><Share2 className="mr-2 h-4 w-4" />Share Maya’s profile</Button>
+        <Button className="flex-1 rounded-full bg-emerald-700 text-white hover:bg-emerald-800" onClick={() => void shareProfile()}><Share2 className="mr-2 h-4 w-4" />Share Dylan’s profile</Button>
       </div>
     </main>
   );
