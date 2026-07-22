@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProviderGrid } from "@/components/movata/ProviderGrid";
+import { HeatMap } from "@/components/movata/HeatMap";
 import { Logo } from "@/components/movata/Logo";
 import { product } from "@/lib/brand";
+import { demoActivities, demoProfile, demoStreak } from "@/lib/sample-data";
 
 const goals = {
   spotlight: {
@@ -46,6 +48,17 @@ const Onboarding = () => {
       </div>
     </header>
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      {intent === "streak" ? (
+        <div className="mb-8">
+          <HeatMap
+            activities={demoActivities}
+            longestStart={demoStreak.longestStreakStart}
+            longestEnd={demoStreak.longestStreakEnd}
+            currentStart={demoStreak.currentStreakStart}
+            unit={demoProfile.preferredUnit}
+          />
+        </div>
+      ) : null}
       <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr]">
         <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm sm:p-8 lg:sticky lg:top-24 lg:h-fit">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700"><GoalIcon className="h-6 w-6" /></div>

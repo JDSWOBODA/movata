@@ -23,9 +23,9 @@ const HeroPreview = () => (
         fetchPriority="high"
       />
       <div className="absolute left-4 top-4 rounded-full border border-white/20 bg-stone-950/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur sm:left-6 sm:top-6">
-        Maya's spotlight
+        Dylan's spotlight
       </div>
-      <div className="absolute right-4 top-4 rounded-[1.25rem] bg-[#fbfaf6] p-4 text-stone-950 shadow-xl sm:right-6 sm:top-6">
+      <div className="absolute left-4 top-16 rounded-[1.25rem] bg-[#fbfaf6] p-4 text-stone-950 shadow-xl sm:left-6 sm:top-[4.75rem]">
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-500">Celebrated</p>
         <p className="mt-1 flex items-center gap-2 font-semibold"><Trophy className="h-5 w-5 text-amber-600" /> First ultra</p>
       </div>
@@ -94,7 +94,7 @@ const Index = () => {
                 <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-800">Start here</span>
               </div>
               <p className="mt-10 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-100">Spotlight · Past runs</p>
-              <h3 className="mt-3 max-w-xl text-3xl font-semibold tracking-tight sm:text-4xl">Celebrate the run you still talk about.</h3>
+              <h3 className="mt-3 max-w-xl text-3xl font-semibold tracking-tight sm:text-4xl">Share your favorite activities to motivate others.</h3>
               <p className="mt-4 max-w-xl leading-7 text-emerald-50">Choose a race, trail day, first finish, comeback, PR, or unforgettable adventure. Add the story behind it and feature it proudly on your page.</p>
               <span className="mt-8 inline-flex items-center font-semibold">Choose a past run <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" /></span>
             </Link>
