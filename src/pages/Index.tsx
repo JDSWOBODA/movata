@@ -13,18 +13,15 @@ import { product } from "@/lib/brand";
 import { formatDistance } from "@/lib/format";
 
 const HeroPreview = () => (
-  <Link to="/dylan" aria-label="Explore Dylan Rivera's public running profile" className="group relative mx-auto block w-full max-w-xl lg:max-w-none">
+  <Link to="/dylan" aria-label="Explore Dylan Rivera's public running profile" className="group relative mx-auto hidden w-full max-w-xl lg:block lg:max-w-none">
     <div className="relative min-h-[540px] overflow-hidden rounded-[2rem] border border-stone-200 bg-stone-900 shadow-2xl shadow-stone-950/15 sm:min-h-[620px]">
-      <picture>
-        <source media="(min-width: 1024px)" srcSet="/assets/movata-hero-runner.png" />
-        <img
-          src="/assets/movata-demo-cover.png"
-          alt="Dylan running outdoors"
-          className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
-          loading="eager"
-          fetchPriority="high"
-        />
-      </picture>
+      <img
+        src="/assets/movata-hero-runner.png"
+        alt="Runner moving along a mountain road at dawn"
+        className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
+        loading="eager"
+        fetchPriority="high"
+      />
       <div className="absolute left-4 top-4 rounded-full border border-white/20 bg-stone-950/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur sm:left-6 sm:top-6">
         Dylan's spotlight
       </div>
@@ -60,6 +57,9 @@ const Index = () => {
         <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.02fr_.98fr] lg:items-center lg:px-8">
           <div>
             <Badge className="rounded-full bg-amber-50 px-3 py-1 text-amber-900 hover:bg-amber-50">A home for the runs that matter</Badge>
+            <Link to="/dylan" aria-label="Explore Dylan Rivera's public running profile" className="mt-6 block overflow-hidden rounded-[1.75rem] border border-stone-200 bg-stone-100 shadow-lg lg:hidden">
+              <img src="/assets/movata-demo-cover.png" alt="Dylan running outdoors" className="h-64 w-full object-cover sm:h-80" loading="eager" fetchPriority="high" />
+            </Link>
             <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-[-0.06em] text-stone-950 sm:text-6xl lg:text-7xl">
               Put your best runs in the spotlight.
             </h1>
