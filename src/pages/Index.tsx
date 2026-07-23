@@ -15,13 +15,16 @@ import { formatDistance } from "@/lib/format";
 const HeroPreview = () => (
   <Link to="/dylan" aria-label="Explore Dylan Rivera's public running profile" className="group relative mx-auto block w-full max-w-xl lg:max-w-none">
     <div className="relative min-h-[540px] overflow-hidden rounded-[2rem] border border-stone-200 bg-stone-900 shadow-2xl shadow-stone-950/15 sm:min-h-[620px]">
-      <img
-        src="/assets/movata-hero-runner.png"
-        alt="Runner moving along a mountain road at dawn"
-        className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
-        loading="eager"
-        fetchPriority="high"
-      />
+      <picture>
+        <source media="(min-width: 1024px)" srcSet="/assets/movata-hero-runner.png" />
+        <img
+          src="/assets/movata-demo-cover.png"
+          alt="Dylan running outdoors"
+          className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
+          loading="eager"
+          fetchPriority="high"
+        />
+      </picture>
       <div className="absolute left-4 top-4 rounded-full border border-white/20 bg-stone-950/75 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur sm:left-6 sm:top-6">
         Dylan's spotlight
       </div>
