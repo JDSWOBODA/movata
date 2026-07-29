@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "./Logo";
 
 const navItems = [
-  { label: "Demo profile", href: "/dylan" },
   { label: "How it works", href: "/#how-it-works" },
+  { label: "Demo profile", href: "/dylan" },
   { label: "Integrations", href: "/#integrations" },
 ];
 
@@ -32,7 +32,7 @@ export const SiteHeader = () => (
         </Button>
         <Button asChild className="rounded-full bg-emerald-700 px-4 text-white shadow-sm hover:bg-emerald-800">
           <Link to="/onboarding">
-            Create<span className="hidden sm:inline"> Your Run Page</span>
+            Create free<span className="hidden sm:inline"> profile</span>
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
