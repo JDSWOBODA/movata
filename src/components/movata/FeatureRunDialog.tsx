@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { formatDuration, metersToKm, metersToMiles } from "@/lib/format";
 import { HIGHLIGHT_LABELS, type FeaturedRunInput } from "@/lib/profile";
+import { deleteImages } from "@/lib/images";
+import { ImagePicker } from "./ImagePicker";
 import type { HighlightType } from "@/lib/movata-types";
 
 interface FeatureRunDialogProps {
@@ -41,6 +43,8 @@ export const FeatureRunDialog = ({ open, onOpenChange, draft, mode, unit, userna
   const [duration, setDuration] = useState("");
   const [note, setNote] = useState("");
   const [highlight, setHighlight] = useState<HighlightType>("featured");
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [uploaded, setUploaded] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,6 +56,8 @@ export const FeatureRunDialog = ({ open, onOpenChange, draft, mode, unit, userna
     setDuration(draft.moving_time_seconds ? formatDuration(draft.moving_time_seconds) : "");
     setNote(draft.note);
     setHighlight(draft.highlight_type);
+    setPhoto(draft.photo_path);
+    setUploaded([]);
     setError(null);
   }, [open, draft, unit]);
 
@@ -66,6 +72,9 @@ export const FeatureRunDialog = ({ open, onOpenChange, draft, mode, unit, userna
     if (!runDate) return setError("Pick the date of the run.");
     if (!Number.isFinite(distanceValue) || distanceValue <= 0) return setError(`Enter a distance in ${unit}.`);
     if (!seconds) return setError("Enter a time like 45:30 or 1:05:00.");
+    // Photos uploaded in this dialog but not kept are unreferenced; clean them up now.
+    void deleteImages(uploaded.filter((path) => path !== photo));
+    setUploaded(photo && uploaded.includes(photo) ? [photo] : []);
     onSubmit({
       ...draft,
       title: title.trim().slice(0, 120),
@@ -74,11 +83,19 @@ export const FeatureRunDialog = ({ open, onOpenChange, draft, mode, unit, userna
       moving_time_seconds: seconds,
       note: note.trim().slice(0, 500),
       highlight_type: highlight,
+      photo_path: photo,
     });
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        // Closing without saving: delete photos uploaded during this edit.
+        if (!next) void deleteImages(uploaded.filter((path) => path !== draft?.photo_path));
+        onOpenChange(next);
+      }}
+    >
       <DialogContent className="max-h-[92vh] overflow-y-auto rounded-[1.5rem] sm:max-w-lg">
         <form onSubmit={submit} className="space-y-4">
           <DialogHeader>
@@ -87,6 +104,8 @@ export const FeatureRunDialog = ({ open, onOpenChange, draft, mode, unit, userna
               {fromStrava ? "Filled in from your Strava run. Edit anything before publishing." : "Enter the details you want people to see."}
             </DialogDescription>
           </DialogHeader>
+
+          <ImagePicker kind="run" label="Photo (optional)" value={photo} onChange={setPhoto} onUploaded={(path) => setUploaded((paths) => [...paths, path])} />
 
           <div className="space-y-2">
             <Label htmlFor="fr-title">Title</Label>
@@ -122,12 +141,12 @@ export const FeatureRunDialog = ({ open, onOpenChange, draft, mode, unit, userna
 
           <p className="flex items-start gap-2 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-900">
             <Globe2 className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>Title, date, distance, time and note will be public at <span className="font-semibold">movata.vercel.app/{username}</span>. Maps, heart rate and start times are never published.</span>
+            <span>Photo, title, date, distance, time and note will be public at <span className="font-semibold">movata.vercel.app/{username}</span>. Maps, heart rate and start times are never published.</span>
           </p>
           {error ? <p role="alert" className="text-sm text-red-700">{error}</p> : null}
 
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="ghost" className="rounded-full" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="button" variant="ghost" className="rounded-full" onClick={() => { void deleteImages(uploaded.filter((path) => path !== draft?.photo_path)); onOpenChange(false); }}>Cancel</Button>
             <Button type="submit" disabled={submitting} className="rounded-full bg-emerald-700 text-white hover:bg-emerald-800">
               {submitting ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : null}
               {mode === "edit" ? "Save changes" : "Publish to profile"}

@@ -9,6 +9,7 @@ import { RunCard } from "@/components/movata/RunCard";
 import { useSession } from "@/contexts/SessionContext";
 import { product } from "@/lib/brand";
 import { featuredRunToActivity, fetchFeaturedRuns, type ProfileRow } from "@/lib/profile";
+import { publicImageUrl } from "@/lib/images";
 
 const setMeta = (property: string, content: string) => {
   let element = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
@@ -37,7 +38,9 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
     setMeta("og:description", profile.bio || `Runs ${firstName} wants you to see.`);
     setMeta("og:type", "profile");
     setMeta("og:url", window.location.href);
-  }, [name, firstName, profile.bio]);
+    const image = publicImageUrl(profile.cover_path) ?? publicImageUrl(profile.avatar_path);
+    if (image) setMeta("og:image", image);
+  }, [name, firstName, profile.bio, profile.cover_path, profile.avatar_path]);
 
   const copyLink = async () => {
     await navigator.clipboard.writeText(window.location.href);
@@ -55,6 +58,8 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
     await copyLink();
   };
 
+  const avatarUrl = publicImageUrl(profile.avatar_path);
+  const coverUrl = publicImageUrl(profile.cover_path);
   const initials = name.replace("@", "").split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
 
   return (
@@ -75,9 +80,15 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
           <p className="rounded-2xl bg-amber-50 p-3 text-sm text-amber-900">Your profile is private. Only you can see this page.</p>
         ) : null}
 
-        <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-2xl font-semibold text-white">{initials}</div>
+        <section className="overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-sm">
+          {coverUrl ? <img src={coverUrl} alt="" className="aspect-[3/1] w-full object-cover" /> : null}
+          <div className="p-6 sm:p-8">
+          <div className={`flex flex-col gap-5 sm:flex-row sm:items-center ${coverUrl ? "-mt-16 sm:-mt-20" : ""}`}>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={name} className="h-20 w-20 shrink-0 rounded-full border-4 border-white object-cover shadow-sm sm:h-24 sm:w-24" />
+            ) : (
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-4 border-white bg-emerald-700 text-2xl font-semibold text-white shadow-sm">{initials}</div>
+            )}
             <div className="min-w-0">
               <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{name}</h1>
               <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-stone-500">
@@ -88,6 +99,7 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
             </div>
           </div>
           {profile.bio ? <p className="mt-5 max-w-3xl whitespace-pre-line text-lg leading-8 text-stone-700">{profile.bio}</p> : null}
+          </div>
         </section>
 
         <section>
@@ -99,7 +111,7 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
             <p className="flex items-center gap-2 text-stone-500"><LoaderCircle className="h-4 w-4 animate-spin" />Loading runs…</p>
           ) : runs.length ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {runs.map((run) => <RunCard key={run.id} activity={run} unit={profile.preferred_unit} compact />)}
+              {runs.map((run) => <RunCard key={run.id} activity={run} unit={profile.preferred_unit} compact showPhoto />)}
             </div>
           ) : (
             <div className="rounded-[1.5rem] border border-dashed border-stone-300 bg-white p-8 text-center text-stone-500">

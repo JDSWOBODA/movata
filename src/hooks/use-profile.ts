@@ -11,6 +11,7 @@ import {
   type FeaturedRunInput,
   type ProfileInput,
 } from "@/lib/profile";
+import { deleteImages } from "@/lib/images";
 
 const errorMessage = (error: unknown, fallback: string) => (error instanceof Error && error.message ? error.message : fallback);
 
@@ -34,7 +35,9 @@ export const useOwnProfile = () => {
 
   const save = useMutation({
     mutationFn: (input: ProfileInput) => saveProfile(userId!, input),
-    onSuccess: (row) => {
+    onSuccess: (row, input) => {
+      const before = profile.data;
+      if (before) void deleteImages([before.avatar_path, before.cover_path].filter((path) => path !== input.avatar_path && path !== input.cover_path));
       queryClient.setQueryData(["own-profile", userId], row);
       toast.success("Profile saved.");
     },
@@ -54,7 +57,9 @@ export const useOwnProfile = () => {
 
   const editFeatured = useMutation({
     mutationFn: ({ id, input }: { id: string; input: Partial<FeaturedRunInput> }) => updateFeaturedRun(id, input),
-    onSuccess: () => {
+    onSuccess: (_result, { id, input }) => {
+      const before = featured.data?.find((run) => run.id === id);
+      if (before?.photo_path && input.photo_path !== undefined && before.photo_path !== input.photo_path) void deleteImages([before.photo_path]);
       toast.success("Featured run updated.");
       refreshFeatured();
     },
@@ -63,7 +68,8 @@ export const useOwnProfile = () => {
 
   const unfeature = useMutation({
     mutationFn: removeFeaturedRun,
-    onSuccess: () => {
+    onSuccess: (_result, id) => {
+      void deleteImages([featured.data?.find((run) => run.id === id)?.photo_path]);
       toast.success("Removed from your public page.");
       refreshFeatured();
     },

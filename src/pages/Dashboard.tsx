@@ -14,6 +14,7 @@ import { RunCard } from "@/components/movata/RunCard";
 import { StatCard } from "@/components/movata/StatCard";
 import { ProfileEditor } from "@/components/movata/ProfileEditor";
 import { FeatureRunDialog } from "@/components/movata/FeatureRunDialog";
+import { ConfirmDialog } from "@/components/movata/ConfirmDialog";
 import { useSession } from "@/contexts/SessionContext";
 import { demoActivities, demoStreak, demoTotals, streakSettings } from "@/lib/sample-data";
 import { useStrava } from "@/hooks/use-strava";
@@ -83,6 +84,7 @@ const Dashboard = () => {
   const own = useOwnProfile();
   const [activeSection, setActiveSection] = useActiveSection();
   const [visibleRuns, setVisibleRuns] = useState(PAGE_SIZE);
+  const [confirming, setConfirming] = useState<{ kind: "remove"; run: FeaturedRunRow } | { kind: "disconnect" } | null>(null);
   const [dialog, setDialog] = useState<{ mode: "add" | "edit"; draft: FeaturedRunInput; editingId?: string } | null>(null);
 
   // Jump to the section in the URL hash once the page has rendered (e.g. /dashboard#profile-editor).
@@ -298,13 +300,13 @@ const Dashboard = () => {
               <ol className="grid gap-4 md:grid-cols-2">
                 {own.featuredRuns.map((run, index) => (
                   <li key={run.id} className="space-y-2">
-                    <RunCard activity={featuredRunToActivity(run)} unit={unit} compact />
+                    <RunCard activity={featuredRunToActivity(run)} unit={unit} compact showPhoto />
                     <div className="flex flex-wrap gap-1.5">
                       <Button size="sm" variant="outline" className="rounded-full" onClick={() => openEdit(run)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
                       <Button size="sm" variant="ghost" className="rounded-full" aria-label="Move earlier" disabled={index === 0 || own.move.isPending} onClick={() => own.move.mutate({ index, direction: -1 })}><ArrowUp className="h-4 w-4" /></Button>
                       <Button size="sm" variant="ghost" className="rounded-full" aria-label="Move later" disabled={index === own.featuredRuns.length - 1 || own.move.isPending} onClick={() => own.move.mutate({ index, direction: 1 })}><ArrowDown className="h-4 w-4" /></Button>
                       <Button size="sm" variant="ghost" className="ml-auto rounded-full text-red-700 hover:bg-red-50 hover:text-red-800" disabled={own.unfeature.isPending}
-                        onClick={() => { if (window.confirm(`Remove "${run.title}" from your public page?`)) own.unfeature.mutate(run.id); }}>
+                        onClick={() => setConfirming({ kind: "remove", run })}>
                         <Trash2 className="mr-1.5 h-3.5 w-3.5" />Remove
                       </Button>
                     </div>
@@ -402,7 +404,7 @@ const Dashboard = () => {
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-stone-50 p-4">
                 <p className="text-sm text-stone-600">Disconnecting deletes all Strava runs Movata cached for you. Featured runs you published stay until you remove them.</p>
                 <Button variant="outline" className="rounded-full bg-white text-red-700" disabled={strava.disconnect.isPending}
-                  onClick={() => { if (window.confirm("Disconnect Strava? Movata will delete all of your cached Strava data.")) strava.disconnect.mutate(); }}>
+                  onClick={() => setConfirming({ kind: "disconnect" })}>
                   <Unplug className="mr-2 h-4 w-4" />Disconnect Strava
                 </Button>
               </div>
@@ -410,6 +412,21 @@ const Dashboard = () => {
           </section>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={Boolean(confirming)}
+        title={confirming?.kind === "remove" ? "Remove from your public page?" : "Disconnect Strava?"}
+        description={confirming?.kind === "remove"
+          ? `"${confirming.run.title}" will no longer appear on your profile. Your Strava run isn't affected.`
+          : "Movata will delete all of your cached Strava runs. Featured runs you published stay until you remove them."}
+        confirmLabel={confirming?.kind === "remove" ? "Remove" : "Disconnect"}
+        onCancel={() => setConfirming(null)}
+        onConfirm={() => {
+          if (confirming?.kind === "remove") own.unfeature.mutate(confirming.run.id);
+          if (confirming?.kind === "disconnect") strava.disconnect.mutate();
+          setConfirming(null);
+        }}
+      />
 
       <FeatureRunDialog
         open={Boolean(dialog)}

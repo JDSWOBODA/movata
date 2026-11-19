@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usernameProblem, type ProfileInput, type ProfileRow } from "@/lib/profile";
+import { ImagePicker } from "./ImagePicker";
 
 interface ProfileEditorProps {
   profile: ProfileRow | null;
@@ -26,6 +27,8 @@ export const ProfileEditor = ({ profile, suggestedUsername, saving, onSave }: Pr
   const [runningSince, setRunningSince] = useState("");
   const [unit, setUnit] = useState<"mi" | "km">("mi");
   const [isPublic, setIsPublic] = useState(true);
+  const [avatarPath, setAvatarPath] = useState<string | null>(null);
+  const [coverPath, setCoverPath] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -36,6 +39,8 @@ export const ProfileEditor = ({ profile, suggestedUsername, saving, onSave }: Pr
     setRunningSince(profile?.running_since?.slice(0, 4) ?? "");
     setUnit(profile?.preferred_unit ?? "mi");
     setIsPublic(profile?.is_public ?? true);
+    setAvatarPath(profile?.avatar_path ?? null);
+    setCoverPath(profile?.cover_path ?? null);
   }, [profile, suggestedUsername]);
 
   const submit = (event: React.FormEvent) => {
@@ -54,6 +59,8 @@ export const ProfileEditor = ({ profile, suggestedUsername, saving, onSave }: Pr
       running_since: year ? `${year}-01-01` : null,
       preferred_unit: unit,
       is_public: isPublic,
+      avatar_path: avatarPath,
+      cover_path: coverPath,
     });
   };
 
@@ -61,6 +68,13 @@ export const ProfileEditor = ({ profile, suggestedUsername, saving, onSave }: Pr
     <form onSubmit={submit} className="space-y-4">
       {!profile ? (
         <p className="rounded-2xl bg-amber-50 p-3 text-sm text-amber-900">Create your profile to reserve your URL and start featuring runs.</p>
+      ) : null}
+      <div className="grid gap-4 sm:grid-cols-[auto_1fr]">
+        <ImagePicker kind="avatar" label="Profile photo" value={avatarPath} onChange={setAvatarPath} />
+        <ImagePicker kind="cover" label="Cover image" value={coverPath} onChange={setCoverPath} />
+      </div>
+      {(avatarPath !== (profile?.avatar_path ?? null) || coverPath !== (profile?.cover_path ?? null)) ? (
+        <p className="text-sm text-amber-800">Image changes apply when you save your profile.</p>
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">

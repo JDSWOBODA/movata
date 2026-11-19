@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { HighlightType, NormalizedActivity } from "./movata-types";
+import { publicImageUrl } from "./images";
 
 export interface ProfileRow {
   id: string;
@@ -10,6 +11,8 @@ export interface ProfileRow {
   running_since: string | null;
   preferred_unit: "mi" | "km";
   is_public: boolean;
+  avatar_path: string | null;
+  cover_path: string | null;
 }
 
 export type ProfileInput = Omit<ProfileRow, "id">;
@@ -25,6 +28,7 @@ export interface FeaturedRunRow {
   highlight_type: HighlightType;
   source: "manual" | "strava";
   strava_activity_id: number | null;
+  photo_path: string | null;
   position: number;
 }
 
@@ -50,8 +54,8 @@ export const HIGHLIGHT_LABELS: Record<HighlightType, string> = {
   toughest: "Toughest",
 };
 
-const PROFILE_COLUMNS = "id,username,display_name,bio,location,running_since,preferred_unit,is_public";
-const FEATURED_COLUMNS = "id,user_id,title,run_date,distance_meters,moving_time_seconds,note,highlight_type,source,strava_activity_id,position";
+const PROFILE_COLUMNS = "id,username,display_name,bio,location,running_since,preferred_unit,is_public,avatar_path,cover_path";
+const FEATURED_COLUMNS = "id,user_id,title,run_date,distance_meters,moving_time_seconds,note,highlight_type,source,strava_activity_id,photo_path,position";
 
 export const fetchOwnProfile = async (userId: string) => {
   const { data, error } = await supabase.from("profiles").select(PROFILE_COLUMNS).eq("id", userId).maybeSingle();
@@ -125,6 +129,7 @@ export const featuredRunToActivity = (run: FeaturedRunRow): NormalizedActivity =
   includeInStreak: false,
   highlightTypes: [run.highlight_type],
   note: run.note || undefined,
+  photos: run.photo_path ? [publicImageUrl(run.photo_path)!] : undefined,
 });
 
 /** Prefill values for the "Feature this run" form from one of the runner's own Strava runs. */
@@ -135,6 +140,7 @@ export const draftFromActivity = (activity: NormalizedActivity): FeaturedRunInpu
   moving_time_seconds: activity.movingTimeSeconds,
   note: "",
   highlight_type: "featured",
+  photo_path: null,
   source: activity.provider === "strava" && activity.externalId ? "strava" : "manual",
   strava_activity_id: activity.provider === "strava" && activity.externalId ? Number(activity.externalId) : null,
 });
@@ -149,4 +155,5 @@ export const blankDraft = (): FeaturedRunInput => ({
   highlight_type: "featured",
   source: "manual",
   strava_activity_id: null,
+  photo_path: null,
 });

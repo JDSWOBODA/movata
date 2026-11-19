@@ -8,10 +8,15 @@ interface RunCardProps {
   activity: NormalizedActivity;
   unit?: "mi" | "km";
   compact?: boolean;
+  /** Show the run's first photo (runner uploads only; sample data keeps its route sketch). */
+  showPhoto?: boolean;
 }
 
-export const RunCard = ({ activity, unit = "mi", compact = false }: RunCardProps) => (
-  <article className="group min-w-[280px] rounded-[1.4rem] border border-stone-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:min-w-0">
+export const RunCard = ({ activity, unit = "mi", compact = false, showPhoto = false }: RunCardProps) => (
+  <article className="group min-w-[280px] overflow-hidden rounded-[1.4rem] border border-stone-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:min-w-0">
+    {showPhoto && activity.photos?.[0] ? (
+      <img src={activity.photos[0]} alt="" loading="lazy" className="-mx-4 -mt-4 mb-4 aspect-[16/9] w-[calc(100%+2rem)] max-w-none object-cover" />
+    ) : null}
     <div className="flex items-start justify-between gap-3">
       <div>
         <div className="flex flex-wrap gap-1.5">
