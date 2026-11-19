@@ -631,7 +631,7 @@ const Dashboard = () => {
             ) : null}
             <div className="mt-6 rounded-2xl border border-red-200 bg-red-50/60 p-4">
               <p className="font-semibold text-red-900">Delete account</p>
-              <p className="mt-1 text-sm text-red-900/80">Permanently delete your Movata account, public page and everything you've added. Your Strava account isn't affected.</p>
+              <p className="mt-1 text-sm text-red-900/80">Permanently delete your Movata account, public page and everything you've added. Your Strava account isn't affected. See the <Link to="/privacy" className="underline underline-offset-2">Privacy &amp; Data Policy</Link>.</p>
               <Button variant="outline" className="mt-3 rounded-full border-red-300 bg-white text-red-700 hover:bg-red-50 hover:text-red-800" onClick={() => setDeletingAccount(true)}>
                 <Trash2 className="mr-2 h-4 w-4" />Delete my account
               </Button>

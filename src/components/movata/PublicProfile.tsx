@@ -133,6 +133,8 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
 
         <GearCorner items={gear.data ?? []} firstName={firstName} trackClicks={!isOwner && profile.is_public} />
 
+        <p className="text-center text-xs text-stone-400"><Link to="/privacy" className="hover:text-stone-600">Privacy &amp; Data Policy</Link></p>
+
         {!user ? (
           <section className="rounded-[2rem] bg-stone-950 p-6 text-white sm:p-8">
             <h2 className="text-2xl font-semibold tracking-tight">Tell your own running story.</h2>

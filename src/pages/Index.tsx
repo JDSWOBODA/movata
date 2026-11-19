@@ -160,7 +160,7 @@ const Index = () => (
     <footer className="border-t border-stone-200 px-4 py-8 text-sm text-stone-500 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p>{product.name} — {product.tagline}</p>
-        <div className="flex gap-5"><Link to="/dylan" className="hover:text-emerald-800">Demo profile</Link><Link to="/login" className="hover:text-emerald-800">Sign in</Link></div>
+        <div className="flex gap-5"><Link to="/dylan" className="hover:text-emerald-800">Demo profile</Link><Link to="/login" className="hover:text-emerald-800">Sign in</Link><Link to="/privacy" className="hover:text-emerald-800">Privacy</Link></div>
       </div>
     </footer>
   </main>

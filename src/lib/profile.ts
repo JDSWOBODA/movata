@@ -37,7 +37,7 @@ export type FeaturedRunInput = Omit<FeaturedRunRow, "id" | "user_id" | "position
 export const USERNAME_PATTERN = /^[a-z0-9][a-z0-9_-]{2,29}$/;
 
 /** Paths the app already uses, so they can't be taken as usernames. */
-const RESERVED_USERNAMES = new Set(["login", "onboarding", "dashboard", "admin", "settings", "api", "assets", "public", "help", "about"]);
+const RESERVED_USERNAMES = new Set(["login", "onboarding", "dashboard", "admin", "settings", "api", "assets", "public", "help", "about", "privacy", "terms", "legal"]);
 
 export const usernameProblem = (username: string) => {
   if (!USERNAME_PATTERN.test(username)) return "Use 3–30 lowercase letters, numbers, - or _, starting with a letter or number.";

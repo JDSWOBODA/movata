@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CheckCircle2, ChevronDown, Clock, Link2, LoaderCircle, Lock, Upload, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { providerCatalog } from "@/lib/provider-adapters";
@@ -169,6 +169,11 @@ export const ProviderGrid = () => {
               {busy || (isStrava && statusLoading) ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : null}
               {buttonLabel}
             </Button>
+            {isStrava && !isConnected ? (
+              <p className="mt-2 text-xs leading-5 text-stone-500">
+                By connecting, you consent to Movata processing your Strava activities, including heart rate, to show them privately to you. Disconnect any time. <Link to="/privacy#strava" className="underline underline-offset-2">Details</Link>
+              </p>
+            ) : null}
           </div>
         );
       })}

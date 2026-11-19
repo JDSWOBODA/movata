@@ -113,6 +113,9 @@ const Login = () => {
                 />
                 <PasswordVisibilityToggle containerRef={authContainerRef} />
               </div>
+              <p className="mt-4 text-xs leading-5 text-stone-500">
+                By creating an account you agree to Movata's <Link to="/privacy" className="font-medium text-emerald-800 underline underline-offset-2">Privacy &amp; Data Policy</Link>. Movata is for people 16 and older.
+              </p>
             </div>
           </section>
         </div>
