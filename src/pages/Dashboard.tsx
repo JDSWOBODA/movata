@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Activity, ArrowDown, ArrowUp, Bookmark, CalendarCheck2, CalendarDays, CalendarPlus, Check, Flag, EyeOff, Flame, Globe2, LoaderCircle, Lock, LogOut, Medal, Pencil,
@@ -15,6 +15,8 @@ import { StatCard } from "@/components/movata/StatCard";
 import { ProfileEditor } from "@/components/movata/ProfileEditor";
 import { FeatureRunDialog } from "@/components/movata/FeatureRunDialog";
 import { ConfirmDialog } from "@/components/movata/ConfirmDialog";
+import { DeleteAccountDialog } from "@/components/movata/DeleteAccountDialog";
+import { supabase } from "@/integrations/supabase/client";
 import { RaceDialog } from "@/components/movata/RaceDialog";
 import { MarkRaceDoneDialog } from "@/components/movata/MarkRaceDoneDialog";
 import { GearDialog } from "@/components/movata/GearDialog";
@@ -93,6 +95,8 @@ const Dashboard = () => {
   const { user, signOut } = useSession();
   const strava = useStrava();
   const own = useOwnProfile();
+  const navigate = useNavigate();
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const raceList = useRaces(Boolean(own.profile));
   const races = useMemo(() => groupRaces(raceList.races), [raceList.races]);
   const [raceDialog, setRaceDialog] = useState<{ mode: "add" | "edit"; draft: RaceInput; editingId?: string } | null>(null);
@@ -625,9 +629,30 @@ const Dashboard = () => {
                 </Button>
               </div>
             ) : null}
+            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50/60 p-4">
+              <p className="font-semibold text-red-900">Delete account</p>
+              <p className="mt-1 text-sm text-red-900/80">Permanently delete your Movata account, public page and everything you've added. Your Strava account isn't affected.</p>
+              <Button variant="outline" className="mt-3 rounded-full border-red-300 bg-white text-red-700 hover:bg-red-50 hover:text-red-800" onClick={() => setDeletingAccount(true)}>
+                <Trash2 className="mr-2 h-4 w-4" />Delete my account
+              </Button>
+            </div>
           </section>
         </div>
       </div>
+
+      <DeleteAccountDialog
+        open={deletingAccount}
+        onOpenChange={setDeletingAccount}
+        username={own.profile?.username ?? null}
+        stravaConnected={strava.connected}
+        onDeleted={() => {
+          // The account no longer exists; clear the local session without asking the server.
+          void supabase.auth.signOut({ scope: "local" }).finally(() => {
+            toast.success("Your Movata account was deleted.");
+            navigate("/", { replace: true });
+          });
+        }}
+      />
 
       <ConfirmDialog
         open={Boolean(confirming)}
