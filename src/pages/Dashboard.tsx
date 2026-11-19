@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Activity, ArrowDown, ArrowUp, Bookmark, CalendarCheck2, CalendarDays, CalendarPlus, Check, Flag, EyeOff, Flame, Globe2, LoaderCircle, Lock, LogOut, Medal, Pencil,
-  Plus, RefreshCw, Route, Settings, Sparkles, Star, Trash2, Unplug, UserRound, Zap,
+  Plus, RefreshCw, Route, Settings, ShoppingBag, Sparkles, Star, Trash2, Unplug, UserRound, Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -17,6 +17,10 @@ import { FeatureRunDialog } from "@/components/movata/FeatureRunDialog";
 import { ConfirmDialog } from "@/components/movata/ConfirmDialog";
 import { RaceDialog } from "@/components/movata/RaceDialog";
 import { MarkRaceDoneDialog } from "@/components/movata/MarkRaceDoneDialog";
+import { GearDialog } from "@/components/movata/GearDialog";
+import { GearCard } from "@/components/movata/GearCard";
+import { useGear } from "@/hooks/use-gear";
+import { blankGear, type GearInput, type GearRow } from "@/lib/gear";
 import { useRaces } from "@/hooks/use-races";
 import { blankRace, formatRaceDate, groupRaces, type RaceInput, type RaceRow } from "@/lib/races";
 import { useSession } from "@/contexts/SessionContext";
@@ -36,6 +40,7 @@ const sections = [
   { id: "streak", label: "Streak" },
   { id: "highlights", label: "Highlights" },
   { id: "races", label: "Races" },
+  { id: "gear", label: "Gear Corner" },
   { id: "records", label: "Records" },
   { id: "profile-editor", label: "Profile Editor" },
   { id: "integrations", label: "Integrations" },
@@ -91,9 +96,11 @@ const Dashboard = () => {
   const races = useMemo(() => groupRaces(raceList.races), [raceList.races]);
   const [raceDialog, setRaceDialog] = useState<{ mode: "add" | "edit"; draft: RaceInput; editingId?: string } | null>(null);
   const [finishing, setFinishing] = useState<RaceRow | null>(null);
+  const gearList = useGear(Boolean(own.profile));
+  const [gearDialog, setGearDialog] = useState<{ mode: "add" | "edit"; draft: GearInput; editingId?: string } | null>(null);
   const [activeSection, setActiveSection] = useActiveSection();
   const [visibleRuns, setVisibleRuns] = useState(PAGE_SIZE);
-  const [confirming, setConfirming] = useState<{ kind: "remove"; run: FeaturedRunRow } | { kind: "disconnect" } | { kind: "remove-race"; race: RaceRow } | null>(null);
+  const [confirming, setConfirming] = useState<{ kind: "remove"; run: FeaturedRunRow } | { kind: "disconnect" } | { kind: "remove-race"; race: RaceRow } | { kind: "remove-gear"; item: GearRow } | null>(null);
   const [dialog, setDialog] = useState<{ mode: "add" | "edit"; draft: FeaturedRunInput; editingId?: string; completesRaceId?: string } | null>(null);
 
   // Jump to the section in the URL hash once the page has rendered (e.g. /dashboard#profile-editor).
@@ -208,6 +215,21 @@ const Dashboard = () => {
     } else {
       raceList.add.mutate(input, { onSuccess: () => setRaceDialog(null) });
     }
+  };
+
+  // ---- gear ---------------------------------------------------------------
+  const openAddGear = () => {
+    if (requireProfile()) setGearDialog({ mode: "add", draft: blankGear() });
+  };
+  const openEditGear = (item: GearRow) => {
+    const { id, user_id: _userId, position: _position, ...draft } = item;
+    setGearDialog({ mode: "edit", draft, editingId: id });
+  };
+  const submitGear = (input: GearInput) => {
+    if (!gearDialog) return;
+    const close = { onSuccess: () => setGearDialog(null) };
+    if (gearDialog.mode === "edit" && gearDialog.editingId) gearList.edit.mutate({ id: gearDialog.editingId, input }, close);
+    else gearList.add.mutate(input, close);
   };
 
   /** From "How did it go?": feature a synced run as this race. */
@@ -490,6 +512,33 @@ const Dashboard = () => {
             ) : null}
           </section>
 
+          {/* Gear Corner */}
+          <section id="gear" className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
+            <SectionTitle eyebrow="Public page" title="Gear Corner" icon={ShoppingBag}>
+              <Button size="sm" className="rounded-full bg-emerald-700 text-white hover:bg-emerald-800" onClick={openAddGear}><Plus className="mr-1.5 h-4 w-4" />Add gear</Button>
+            </SectionTitle>
+            {!own.profile ? (
+              <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-center text-stone-600">Create your profile to start your Gear Corner.</p>
+            ) : gearList.gear.length ? (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {gearList.gear.map((item, index) => (
+                  <GearCard key={item.id} item={item} actions={
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Button size="sm" variant="outline" className="rounded-full" onClick={() => openEditGear(item)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
+                      <Button size="sm" variant="ghost" className="rounded-full px-2" aria-label="Move earlier" disabled={index === 0 || gearList.move.isPending} onClick={() => gearList.move.mutate({ index, direction: -1 })}><ArrowUp className="h-4 w-4" /></Button>
+                      <Button size="sm" variant="ghost" className="rounded-full px-2" aria-label="Move later" disabled={index === gearList.gear.length - 1 || gearList.move.isPending} onClick={() => gearList.move.mutate({ index, direction: 1 })}><ArrowDown className="h-4 w-4" /></Button>
+                    </div>
+                  } />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-stone-300 p-6 text-center text-stone-600">
+                <p>Show off the shoes, shorts, watch and fuel you trust.</p>
+                <p className="mt-1 text-sm text-stone-500">Add product links (with affiliate disclosure) and video reviews.</p>
+              </div>
+            )}
+          </section>
+
           {/* Records */}
           <section id="records" className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
             <SectionTitle eyebrow="Personal bests" title="Records" icon={Medal}><PrivateBadge /></SectionTitle>
@@ -561,11 +610,13 @@ const Dashboard = () => {
 
       <ConfirmDialog
         open={Boolean(confirming)}
-        title={confirming?.kind === "remove" ? "Remove from your public page?" : confirming?.kind === "remove-race" ? "Remove this race?" : "Disconnect Strava?"}
+        title={confirming?.kind === "remove" ? "Remove from your public page?" : confirming?.kind === "remove-race" ? "Remove this race?" : confirming?.kind === "remove-gear" ? "Remove this gear?" : "Disconnect Strava?"}
         description={confirming?.kind === "remove"
           ? `"${confirming.run.title}" will no longer appear on your profile. Your Strava run isn't affected.`
           : confirming?.kind === "remove-race"
             ? `"${confirming.race.name}" will be removed from your races. A featured run linked to it stays.`
+            : confirming?.kind === "remove-gear"
+            ? `"${[confirming.item.brand, confirming.item.name].filter(Boolean).join(" ")}" will be removed from your Gear Corner.`
             : "Movata will delete all of your cached Strava runs. Featured runs you published stay until you remove them."}
         confirmLabel={confirming?.kind === "disconnect" ? "Disconnect" : "Remove"}
         onCancel={() => setConfirming(null)}
@@ -573,6 +624,7 @@ const Dashboard = () => {
           if (confirming?.kind === "remove") own.unfeature.mutate(confirming.run.id);
           if (confirming?.kind === "disconnect") strava.disconnect.mutate();
           if (confirming?.kind === "remove-race") { raceList.remove.mutate(confirming.race.id); setRaceDialog(null); }
+          if (confirming?.kind === "remove-gear") { gearList.remove.mutate(confirming.item.id); setGearDialog(null); }
           setConfirming(null);
         }}
       />
@@ -588,6 +640,20 @@ const Dashboard = () => {
         onRemove={raceDialog?.editingId ? () => {
           const race = raceList.races.find((item) => item.id === raceDialog.editingId);
           if (race) setConfirming({ kind: "remove-race", race });
+        } : undefined}
+      />
+
+      <GearDialog
+        open={Boolean(gearDialog)}
+        onOpenChange={(open) => { if (!open) setGearDialog(null); }}
+        draft={gearDialog?.draft ?? null}
+        mode={gearDialog?.mode ?? "add"}
+        username={own.profile?.username ?? ""}
+        submitting={gearList.add.isPending || gearList.edit.isPending}
+        onSubmit={submitGear}
+        onRemove={gearDialog?.editingId ? () => {
+          const item = gearList.gear.find((gear) => gear.id === gearDialog.editingId);
+          if (item) setConfirming({ kind: "remove-gear", item });
         } : undefined}
       />
 

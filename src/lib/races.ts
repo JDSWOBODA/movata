@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeWebUrl } from "./links";
 
 export type RaceStatus = "registered" | "bucket_list" | "done";
 
@@ -40,18 +41,7 @@ export const blankRace = (status: RaceStatus = "bucket_list"): RaceInput => ({
 });
 
 /** Accepts "ultrasignup.com/…" or a full URL; returns a normalized http(s) URL or null. */
-export const normalizeRaceUrl = (text: string) => {
-  const trimmed = text.trim();
-  if (!trimmed) return null;
-  const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-  try {
-    const url = new URL(withScheme);
-    if (!["http:", "https:"].includes(url.protocol) || !url.hostname.includes(".")) return undefined;
-    return url.toString().slice(0, 500);
-  } catch {
-    return undefined;
-  }
-};
+export const normalizeRaceUrl = (text: string) => normalizeWebUrl(text, 500);
 
 export const fetchRaces = async (userId: string) => {
   const { data, error } = await supabase

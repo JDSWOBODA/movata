@@ -2,10 +2,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const MEDIA_BUCKET = "profile-media";
 
-export type ImageKind = "avatar" | "cover" | "run";
+export type ImageKind = "avatar" | "cover" | "run" | "gear";
 
 /** Longest edge after resizing, per use. Keeps uploads small and fast to load. */
-const MAX_EDGE: Record<ImageKind, number> = { avatar: 512, cover: 2000, run: 1600 };
+const MAX_EDGE: Record<ImageKind, number> = { avatar: 512, cover: 2000, run: 1600, gear: 1200 };
 const MAX_INPUT_BYTES = 25 * 1024 * 1024;
 
 export const publicImageUrl = (path: string | null | undefined) =>

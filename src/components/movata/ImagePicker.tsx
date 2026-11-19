@@ -21,6 +21,7 @@ const frame: Record<ImageKind, string> = {
   avatar: "h-24 w-24 rounded-full",
   cover: "aspect-[3/1] w-full rounded-2xl",
   run: "aspect-[16/9] w-full rounded-2xl",
+  gear: "aspect-square w-40 rounded-2xl",
 };
 
 /** Upload, preview, replace or remove one image. Uploads immediately; the parent saves the path. */

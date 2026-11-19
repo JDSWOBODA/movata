@@ -12,6 +12,8 @@ import { featuredRunToActivity, fetchFeaturedRuns, type ProfileRow } from "@/lib
 import { publicImageUrl } from "@/lib/images";
 import { fetchRaces } from "@/lib/races";
 import { RaceLists } from "@/components/movata/RaceLists";
+import { GearCorner } from "@/components/movata/GearCorner";
+import { fetchGear } from "@/lib/gear";
 
 const setMeta = (property: string, content: string) => {
   let element = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
@@ -31,6 +33,7 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
   const firstName = name.split(" ")[0];
   const featured = useQuery({ queryKey: ["public-featured", profile.id], queryFn: () => fetchFeaturedRuns(profile.id) });
   const races = useQuery({ queryKey: ["public-races", profile.id], queryFn: () => fetchRaces(profile.id) });
+  const gear = useQuery({ queryKey: ["public-gear", profile.id], queryFn: () => fetchGear(profile.id) });
   const runs = (featured.data ?? []).map(featuredRunToActivity);
   const anyFromStrava = runs.some((run) => run.provider === "strava");
 
@@ -127,6 +130,8 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
         </section>
 
         <RaceLists races={races.data ?? []} firstName={firstName} />
+
+        <GearCorner items={gear.data ?? []} firstName={firstName} />
 
         {!user ? (
           <section className="rounded-[2rem] bg-stone-950 p-6 text-white sm:p-8">
