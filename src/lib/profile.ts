@@ -94,11 +94,12 @@ export const fetchFeaturedRuns = async (userId: string) => {
 };
 
 export const addFeaturedRun = async (userId: string, input: FeaturedRunInput, position: number) => {
-  const { error } = await supabase.from("featured_runs").insert({ user_id: userId, position, ...input });
+  const { data, error } = await supabase.from("featured_runs").insert({ user_id: userId, position, ...input }).select("id").single();
   if (error) {
     if (error.code === "23505") throw new Error("That run is already featured.");
     throw error;
   }
+  return data.id as string;
 };
 
 export const updateFeaturedRun = async (id: string, input: Partial<FeaturedRunInput & { position: number }>) => {

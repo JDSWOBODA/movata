@@ -10,6 +10,8 @@ import { useSession } from "@/contexts/SessionContext";
 import { product } from "@/lib/brand";
 import { featuredRunToActivity, fetchFeaturedRuns, type ProfileRow } from "@/lib/profile";
 import { publicImageUrl } from "@/lib/images";
+import { fetchRaces } from "@/lib/races";
+import { RaceLists } from "@/components/movata/RaceLists";
 
 const setMeta = (property: string, content: string) => {
   let element = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
@@ -28,6 +30,7 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
   const name = profile.display_name || `@${profile.username}`;
   const firstName = name.split(" ")[0];
   const featured = useQuery({ queryKey: ["public-featured", profile.id], queryFn: () => fetchFeaturedRuns(profile.id) });
+  const races = useQuery({ queryKey: ["public-races", profile.id], queryFn: () => fetchRaces(profile.id) });
   const runs = (featured.data ?? []).map(featuredRunToActivity);
   const anyFromStrava = runs.some((run) => run.provider === "strava");
 
@@ -111,7 +114,7 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
             <p className="flex items-center gap-2 text-stone-500"><LoaderCircle className="h-4 w-4 animate-spin" />Loading runs…</p>
           ) : runs.length ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {runs.map((run) => <RunCard key={run.id} activity={run} unit={profile.preferred_unit} compact showPhoto />)}
+              {runs.map((run) => <div key={run.id} id={`run-${run.id}`} className="scroll-mt-6"><RunCard activity={run} unit={profile.preferred_unit} compact showPhoto /></div>)}
             </div>
           ) : (
             <div className="rounded-[1.5rem] border border-dashed border-stone-300 bg-white p-8 text-center text-stone-500">
@@ -122,6 +125,8 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
           )}
           {anyFromStrava ? <p className="mt-4 text-xs font-semibold text-[#FC5200]">Some runs shared from Strava by {firstName}</p> : null}
         </section>
+
+        <RaceLists races={races.data ?? []} firstName={firstName} />
 
         {!user ? (
           <section className="rounded-[2rem] bg-stone-950 p-6 text-white sm:p-8">

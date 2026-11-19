@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
-  Activity, ArrowDown, ArrowUp, CalendarCheck2, Check, EyeOff, Flame, Globe2, LoaderCircle, Lock, LogOut, Medal, Pencil,
+  Activity, ArrowDown, ArrowUp, Bookmark, CalendarCheck2, CalendarDays, CalendarPlus, Check, Flag, EyeOff, Flame, Globe2, LoaderCircle, Lock, LogOut, Medal, Pencil,
   Plus, RefreshCw, Route, Settings, Sparkles, Star, Trash2, Unplug, UserRound, Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,10 @@ import { StatCard } from "@/components/movata/StatCard";
 import { ProfileEditor } from "@/components/movata/ProfileEditor";
 import { FeatureRunDialog } from "@/components/movata/FeatureRunDialog";
 import { ConfirmDialog } from "@/components/movata/ConfirmDialog";
+import { RaceDialog } from "@/components/movata/RaceDialog";
+import { MarkRaceDoneDialog } from "@/components/movata/MarkRaceDoneDialog";
+import { useRaces } from "@/hooks/use-races";
+import { blankRace, formatRaceDate, groupRaces, type RaceInput, type RaceRow } from "@/lib/races";
 import { useSession } from "@/contexts/SessionContext";
 import { demoActivities, demoStreak, demoTotals, streakSettings } from "@/lib/sample-data";
 import { useStrava } from "@/hooks/use-strava";
@@ -31,6 +35,7 @@ const sections = [
   { id: "activities", label: "Activities" },
   { id: "streak", label: "Streak" },
   { id: "highlights", label: "Highlights" },
+  { id: "races", label: "Races" },
   { id: "records", label: "Records" },
   { id: "profile-editor", label: "Profile Editor" },
   { id: "integrations", label: "Integrations" },
@@ -82,10 +87,14 @@ const Dashboard = () => {
   const { user, signOut } = useSession();
   const strava = useStrava();
   const own = useOwnProfile();
+  const raceList = useRaces(Boolean(own.profile));
+  const races = useMemo(() => groupRaces(raceList.races), [raceList.races]);
+  const [raceDialog, setRaceDialog] = useState<{ mode: "add" | "edit"; draft: RaceInput; editingId?: string } | null>(null);
+  const [finishing, setFinishing] = useState<RaceRow | null>(null);
   const [activeSection, setActiveSection] = useActiveSection();
   const [visibleRuns, setVisibleRuns] = useState(PAGE_SIZE);
-  const [confirming, setConfirming] = useState<{ kind: "remove"; run: FeaturedRunRow } | { kind: "disconnect" } | null>(null);
-  const [dialog, setDialog] = useState<{ mode: "add" | "edit"; draft: FeaturedRunInput; editingId?: string } | null>(null);
+  const [confirming, setConfirming] = useState<{ kind: "remove"; run: FeaturedRunRow } | { kind: "disconnect" } | { kind: "remove-race"; race: RaceRow } | null>(null);
+  const [dialog, setDialog] = useState<{ mode: "add" | "edit"; draft: FeaturedRunInput; editingId?: string; completesRaceId?: string } | null>(null);
 
   // Jump to the section in the URL hash once the page has rendered (e.g. /dashboard#profile-editor).
   useEffect(() => {
@@ -159,8 +168,64 @@ const Dashboard = () => {
   const submitDialog = (input: FeaturedRunInput) => {
     if (!dialog) return;
     const close = { onSuccess: () => setDialog(null) };
-    if (dialog.mode === "edit" && dialog.editingId) own.editFeatured.mutate({ id: dialog.editingId, input }, close);
-    else own.feature.mutate(input, close);
+    if (dialog.mode === "edit" && dialog.editingId) {
+      own.editFeatured.mutate({ id: dialog.editingId, input }, close);
+      return;
+    }
+    const raceId = dialog.completesRaceId;
+    own.feature.mutate(input, {
+      onSuccess: (featuredId) => {
+        setDialog(null);
+        if (raceId) completeRace(raceId, featuredId, input.run_date);
+      },
+    });
+  };
+
+  // ---- races --------------------------------------------------------------
+  const completeRace = (raceId: string, featuredRunId: string | null, completedOn: string | null) => {
+    raceList.edit.mutate(
+      { id: raceId, input: { status: "done", featured_run_id: featuredRunId, completed_on: completedOn } },
+      { onSuccess: () => toast.success(featuredRunId ? "Race checked off and featured on your page." : "Race checked off.") },
+    );
+    setFinishing(null);
+  };
+
+  const openAddRace = (status: RaceInput["status"]) => {
+    if (requireProfile()) setRaceDialog({ mode: "add", draft: blankRace(status) });
+  };
+  const openEditRace = (race: RaceRow) => {
+    const { name, race_date, location, distance_label, url, note, status, photo_path } = race;
+    setRaceDialog({ mode: "edit", draft: { name, race_date, location, distance_label, url, note, status, photo_path }, editingId: race.id });
+  };
+  const submitRace = (input: RaceInput) => {
+    if (!raceDialog) return;
+    if (raceDialog.mode === "edit" && raceDialog.editingId) {
+      const leavingDone = input.status !== "done";
+      raceList.edit.mutate(
+        { id: raceDialog.editingId, input: leavingDone ? { ...input, featured_run_id: null, completed_on: null } : input },
+        { onSuccess: () => { setRaceDialog(null); toast.success("Race saved."); } },
+      );
+    } else {
+      raceList.add.mutate(input, { onSuccess: () => setRaceDialog(null) });
+    }
+  };
+
+  /** From "How did it go?": feature a synced run as this race. */
+  const featureRaceRun = (race: RaceRow, run: NormalizedActivity) => {
+    setFinishing(null);
+    setDialog({
+      mode: "add",
+      completesRaceId: race.id,
+      draft: { ...draftFromActivity(run), title: race.name, highlight_type: "best_race", note: race.note, photo_path: null },
+    });
+  };
+  const enterRaceManually = (race: RaceRow) => {
+    setFinishing(null);
+    setDialog({
+      mode: "add",
+      completesRaceId: race.id,
+      draft: { ...blankDraft(), title: race.name, run_date: race.race_date ?? blankDraft().run_date, highlight_type: "best_race", note: race.note },
+    });
   };
 
   const publicPath = own.profile?.is_public ? `/${own.profile.username}` : null;
@@ -344,6 +409,87 @@ const Dashboard = () => {
             ) : null}
           </section>
 
+          {/* Races */}
+          <section id="races" className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
+            <SectionTitle eyebrow="Public page" title="Races" icon={Flag}>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" className="rounded-full bg-emerald-700 text-white hover:bg-emerald-800" onClick={() => openAddRace("registered")}><CalendarPlus className="mr-1.5 h-4 w-4" />Registered race</Button>
+                <Button size="sm" variant="outline" className="rounded-full" onClick={() => openAddRace("bucket_list")}><Bookmark className="mr-1.5 h-4 w-4" />Bucket list</Button>
+              </div>
+            </SectionTitle>
+
+            {races.awaitingResult.map((race) => (
+              <div key={race.id} className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                <Flag className="h-5 w-5 text-emerald-700" />
+                <p className="min-w-0 flex-1 text-emerald-950"><span className="font-semibold">How did {race.name} go?</span> <span className="text-sm text-emerald-800">{formatRaceDate(race.race_date)}</span></p>
+                <Button size="sm" className="rounded-full bg-emerald-700 text-white hover:bg-emerald-800" onClick={() => setFinishing(race)}>Mark as done</Button>
+              </div>
+            ))}
+
+            {!own.profile ? (
+              <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-center text-stone-600">Create your profile to add races.</p>
+            ) : (
+              <div className="grid gap-5 lg:grid-cols-2">
+                <div>
+                  <h3 className="mb-3 flex items-center gap-2 font-semibold"><CalendarDays className="h-4 w-4 text-emerald-700" />On the calendar</h3>
+                  {races.upcoming.length ? (
+                    <ul className="space-y-2">
+                      {races.upcoming.map((race) => (
+                        <li key={race.id} className="rounded-2xl border border-stone-200 p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="font-medium">{race.name}</p>
+                              <p className="text-sm text-stone-500">{[formatRaceDate(race.race_date), race.distance_label, race.location].filter(Boolean).join(" · ")}</p>
+                            </div>
+                            <Button size="sm" variant="ghost" className="shrink-0 rounded-full" onClick={() => openEditRace(race)}><Pencil className="h-3.5 w-3.5" /><span className="sr-only">Edit</span></Button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : <p className="rounded-2xl bg-stone-50 p-3 text-sm text-stone-500">No registered races yet.</p>}
+                </div>
+                <div>
+                  <h3 className="mb-3 flex items-center gap-2 font-semibold"><Bookmark className="h-4 w-4 text-amber-600" />Bucket list</h3>
+                  {races.bucketList.length ? (
+                    <ul className="space-y-2">
+                      {races.bucketList.map((race, index) => (
+                        <li key={race.id} className="rounded-2xl border border-stone-200 p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="font-medium">{race.name}</p>
+                              <p className="text-sm text-stone-500">{[race.distance_label, race.location].filter(Boolean).join(" · ") || "Details to come"}</p>
+                            </div>
+                            <div className="flex shrink-0">
+                              <Button size="sm" variant="ghost" className="rounded-full px-2" aria-label="Move up" disabled={index === 0 || raceList.move.isPending} onClick={() => raceList.move.mutate({ list: races.bucketList, index, direction: -1 })}><ArrowUp className="h-4 w-4" /></Button>
+                              <Button size="sm" variant="ghost" className="rounded-full px-2" aria-label="Move down" disabled={index === races.bucketList.length - 1 || raceList.move.isPending} onClick={() => raceList.move.mutate({ list: races.bucketList, index, direction: 1 })}><ArrowDown className="h-4 w-4" /></Button>
+                              <Button size="sm" variant="ghost" className="rounded-full px-2" onClick={() => openEditRace(race)}><Pencil className="h-3.5 w-3.5" /><span className="sr-only">Edit</span></Button>
+                            </div>
+                          </div>
+                          <Button size="sm" variant="link" className="h-auto p-0 text-emerald-800" onClick={() => setFinishing(race)}>I ran it</Button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : <p className="rounded-2xl bg-stone-50 p-3 text-sm text-stone-500">Add the races you dream about.</p>}
+                </div>
+              </div>
+            )}
+
+            {races.done.length ? (
+              <div className="mt-5 border-t border-stone-200 pt-4">
+                <h3 className="mb-2 text-sm font-semibold text-stone-700">Checked off</h3>
+                <ul className="space-y-1.5">
+                  {races.done.map((race) => (
+                    <li key={race.id} className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-emerald-700" />
+                      <span className="min-w-0 flex-1 truncate">{race.name}{race.completed_on || race.race_date ? <span className="text-stone-500"> · {formatRaceDate(race.completed_on ?? race.race_date)}</span> : null}{race.featured_run_id ? <span className="text-emerald-800"> · featured</span> : null}</span>
+                      <Button size="sm" variant="ghost" className="h-7 rounded-full px-2" onClick={() => openEditRace(race)}><Pencil className="h-3.5 w-3.5" /><span className="sr-only">Edit</span></Button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </section>
+
           {/* Records */}
           <section id="records" className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
             <SectionTitle eyebrow="Personal bests" title="Records" icon={Medal}><PrivateBadge /></SectionTitle>
@@ -415,17 +561,47 @@ const Dashboard = () => {
 
       <ConfirmDialog
         open={Boolean(confirming)}
-        title={confirming?.kind === "remove" ? "Remove from your public page?" : "Disconnect Strava?"}
+        title={confirming?.kind === "remove" ? "Remove from your public page?" : confirming?.kind === "remove-race" ? "Remove this race?" : "Disconnect Strava?"}
         description={confirming?.kind === "remove"
           ? `"${confirming.run.title}" will no longer appear on your profile. Your Strava run isn't affected.`
-          : "Movata will delete all of your cached Strava runs. Featured runs you published stay until you remove them."}
-        confirmLabel={confirming?.kind === "remove" ? "Remove" : "Disconnect"}
+          : confirming?.kind === "remove-race"
+            ? `"${confirming.race.name}" will be removed from your races. A featured run linked to it stays.`
+            : "Movata will delete all of your cached Strava runs. Featured runs you published stay until you remove them."}
+        confirmLabel={confirming?.kind === "disconnect" ? "Disconnect" : "Remove"}
         onCancel={() => setConfirming(null)}
         onConfirm={() => {
           if (confirming?.kind === "remove") own.unfeature.mutate(confirming.run.id);
           if (confirming?.kind === "disconnect") strava.disconnect.mutate();
+          if (confirming?.kind === "remove-race") { raceList.remove.mutate(confirming.race.id); setRaceDialog(null); }
           setConfirming(null);
         }}
+      />
+
+      <RaceDialog
+        open={Boolean(raceDialog)}
+        onOpenChange={(open) => { if (!open) setRaceDialog(null); }}
+        draft={raceDialog?.draft ?? null}
+        mode={raceDialog?.mode ?? "add"}
+        username={own.profile?.username ?? ""}
+        submitting={raceList.add.isPending || raceList.edit.isPending}
+        onSubmit={submitRace}
+        onRemove={raceDialog?.editingId ? () => {
+          const race = raceList.races.find((item) => item.id === raceDialog.editingId);
+          if (race) setConfirming({ kind: "remove-race", race });
+        } : undefined}
+      />
+
+      <MarkRaceDoneDialog
+        race={finishing}
+        runs={usingStrava ? sortedRuns : []}
+        featuredRuns={own.featuredRuns}
+        unit={unit}
+        busy={raceList.edit.isPending}
+        onClose={() => setFinishing(null)}
+        onFeatureRun={(run) => finishing && featureRaceRun(finishing, run)}
+        onLinkFeatured={(featured) => finishing && completeRace(finishing.id, featured.id, featured.run_date)}
+        onEnterManually={() => finishing && enterRaceManually(finishing)}
+        onDoneWithoutRun={() => finishing && completeRace(finishing.id, null, finishing.race_date)}
       />
 
       <FeatureRunDialog
