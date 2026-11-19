@@ -2,6 +2,7 @@ import { CalendarDays, MapPin, Mountain, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { NormalizedActivity } from "@/lib/movata-types";
 import { formatDate, formatDistance, formatDuration, formatPace } from "@/lib/format";
+import { stravaActivityUrl } from "@/lib/strava";
 
 interface RunCardProps {
   activity: NormalizedActivity;
@@ -62,5 +63,10 @@ export const RunCard = ({ activity, unit = "mi", compact = false }: RunCardProps
       {activity.elevationGainMeters ? <span className="inline-flex items-center gap-1.5"><Mountain className="h-4 w-4" />{Math.round(activity.elevationGainMeters)}m gain</span> : null}
     </div>
     {activity.note ? <p className="mt-3 border-t border-stone-200 pt-3 text-sm leading-6 text-stone-600">{activity.note}</p> : null}
+    {stravaActivityUrl(activity) ? (
+      <a href={stravaActivityUrl(activity)} target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm font-bold text-[#FC5200] underline underline-offset-2">
+        View on Strava
+      </a>
+    ) : null}
   </article>
 );

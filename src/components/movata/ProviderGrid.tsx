@@ -4,6 +4,7 @@ import { CheckCircle2, ChevronDown, Clock, Link2, LoaderCircle, Lock, Upload, Wr
 import { toast } from "sonner";
 import { providerCatalog } from "@/lib/provider-adapters";
 import { beginStravaOAuth, beginStripeCheckout } from "@/lib/provider-actions";
+import { STRAVA_REQUIRES_SUBSCRIPTION } from "@/lib/strava";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/contexts/SessionContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -88,7 +89,7 @@ export const ProviderGrid = () => {
     if (result === "error") toast.error("Strava could not be connected. Please try again.");
   }, [location.search]);
 
-  const billingActive = ["active", "trialing"].includes(subscriptionStatus ?? "");
+  const billingActive = !STRAVA_REQUIRES_SUBSCRIPTION || ["active", "trialing"].includes(subscriptionStatus ?? "");
   const stravaConnected = stravaConnection?.sync_status === "connected";
 
   const handleStrava = async () => {
@@ -131,7 +132,7 @@ export const ProviderGrid = () => {
         const isConnected = isStrava && stravaConnected;
         const busy = isStrava && actionProvider === "strava";
         const disabled = isConnected || busy || (isStrava && statusLoading);
-        const statusLabel = isConnected ? "connected" : isStrava && billingActive ? "unlocked" : provider.status === "paywalled" ? "$3/yr" : provider.status;
+        const statusLabel = isConnected ? "connected" : isStrava && !STRAVA_REQUIRES_SUBSCRIPTION ? "free beta" : isStrava && billingActive ? "unlocked" : provider.status === "paywalled" ? "$3/yr" : provider.status;
         const buttonLabel = isConnected
           ? "Strava Connected"
           : busy
@@ -149,7 +150,7 @@ export const ProviderGrid = () => {
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-stone-100">{iconFor(provider.status, isConnected)}</span>
                 <div className="min-w-0">
                   <h3 className="font-semibold text-stone-950">{provider.label}</h3>
-                  <p className="text-sm text-stone-500">{isConnected ? "Securely linked to your Movata" : provider.detail}</p>
+                  <p className="text-sm text-stone-500">{isConnected ? "Securely linked to your Movata" : isStrava && !STRAVA_REQUIRES_SUBSCRIPTION ? "Sync your runs to your private dashboard" : provider.detail}</p>
                 </div>
               </div>
               <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider ${isConnected ? "bg-emerald-700 text-white" : "bg-emerald-50 text-emerald-800"}`}>

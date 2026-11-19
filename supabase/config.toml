@@ -1,0 +1,8 @@
+# Strava redirects the browser to strava-oauth without a Supabase login token,
+# so that one function must accept unauthenticated GET requests.
+# (It verifies its own signed "state" parameter instead.)
+[functions.strava-oauth]
+verify_jwt = false
+
+[functions.strava-sync]
+verify_jwt = true

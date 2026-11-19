@@ -117,14 +117,17 @@ serve(async (req) => {
     const { data: userData, error: userError } = await authClient.auth.getUser(token);
     if (userError || !userData.user) return json({ error: "Your session has expired. Please sign in again." }, 401);
 
-    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { data: entitlement } = await admin
-      .from("billing_subscriptions")
-      .select("status")
-      .eq("user_id", userData.user.id)
-      .maybeSingle();
-    if (!entitlement || !["active", "trialing"].includes(entitlement.status)) {
-      return json({ error: "A $3/year subscription is required before connecting Strava.", requiresCheckout: true }, 402);
+    // Paywall is off while testing. Set the secret STRAVA_REQUIRE_SUBSCRIPTION=true to turn it back on.
+    if (Deno.env.get("STRAVA_REQUIRE_SUBSCRIPTION") === "true") {
+      const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      const { data: entitlement } = await admin
+        .from("billing_subscriptions")
+        .select("status")
+        .eq("user_id", userData.user.id)
+        .maybeSingle();
+      if (!entitlement || !["active", "trialing"].includes(entitlement.status)) {
+        return json({ error: "A $3/year subscription is required before connecting Strava.", requiresCheckout: true }, 402);
+      }
     }
 
     const authorize = new URL("https://www.strava.com/oauth/authorize");
