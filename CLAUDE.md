@@ -7,7 +7,7 @@ called RunStory (`DabbleJ/runstory`); that repo is retired, so don't push there.
 ## Stack
 - Vite + React 19 + TypeScript, React Router (routes live in `src/App.tsx`), Tailwind, shadcn/ui,
   TanStack Query, sonner toasts. Follow `AI_RULES.md` (Dyad's conventions).
-- Supabase project ref `txaicetmxfehpnhjmjpc` (client in `src/integrations/supabase/client.ts`,
+- Replacement Supabase project ref `ufazcckldxznchatctrt` (client in `src/integrations/supabase/client.ts`,
   auto-generated, don't edit). Edge functions in `supabase/functions/`, SQL in `supabase/migrations/`.
 - Stripe: `create-stripe-checkout`, `stripe-webhook` functions (a $3/yr plan, currently not enforced).
 
@@ -36,10 +36,13 @@ called RunStory (`DabbleJ/runstory`); that repo is retired, so don't push there.
 - New Strava apps allow 1 athlete (up to 10 without review); more needs Strava's approval.
 - Follow Strava brand guidelines (attribution, "View on Strava" links, no "Strava" in the app name).
 
-## Status / next steps (as of 2026-11-19)
-1. Done: code merged to `main`.
-2. To do: create the Strava API app (callback domain `txaicetmxfehpnhjmjpc.supabase.co`), run the
-   migration in the Supabase SQL Editor, add the 5 secrets, deploy `strava-oauth` (JWT off) and
-   `strava-sync`, then connect a Strava account and check the function logs.
+## Status / next steps after Supabase recreation
+1. Rebuilt in the replacement project: `provider_connections`, `billing_subscriptions`,
+   `strava_activities`, and the service-role-only purge helper. RLS and explicit grants are in place.
+   This restores schema only, not deleted users or records.
+2. To do: restore Auth redirect settings and function secrets, update the Strava callback domain
+   to `ufazcckldxznchatctrt.supabase.co`, confirm automatic function deployment, and test a new account.
+   If using Stripe, update its webhook endpoint and reconcile existing subscriptions to new Auth IDs.
+   See `STRAVA_SETUP.md` for details. Do not rely on the historical migration alone for restored grants.
 3. Later: real CSV import + manual entry, wire public profiles to non-Strava data, profile editor,
    Strava webhook for deauthorization/deletion events, decide on the paywall.

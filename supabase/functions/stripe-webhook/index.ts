@@ -33,6 +33,8 @@ const verifyStripeSignature = async (payload: string, header: string, secret: st
   return difference === 0;
 };
 
+console.info("[stripe-webhook] Function initialized");
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
