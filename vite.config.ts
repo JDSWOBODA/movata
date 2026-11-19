@@ -10,6 +10,9 @@ export default defineConfig(() => ({
   },
   plugins: [dyadComponentTagger(), react()],
   resolve: {
+    // @supabase/auth-ui-react ships its own React 18; force a single React copy
+    // or the login page crashes with "Cannot read properties of null (reading 'useState')".
+    dedupe: ["react", "react-dom"],
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },

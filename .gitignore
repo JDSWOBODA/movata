@@ -29,3 +29,6 @@ dist-ssr
 /playwright/.cache/
 .last-run.json
 .dyad/
+
+# Supabase CLI link state
+supabase/.temp/
