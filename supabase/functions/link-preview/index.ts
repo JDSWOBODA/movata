@@ -140,7 +140,8 @@ serve(async (req) => {
       const type = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
       if (!type.startsWith("image/") || type === "image/svg+xml") throw new PreviewError("That link isn't a supported image.");
       const bytes = await readCapped(response, MAX_IMAGE_BYTES);
-      return new Response(bytes, { headers: { ...corsHeaders, "Content-Type": type, "Cache-Control": "no-store" } });
+      // Sent as octet-stream: supabase-js only returns a Blob for that type (it reads image/* as text).
+      return new Response(bytes, { headers: { ...corsHeaders, "Content-Type": "application/octet-stream", "X-Image-Type": type, "Cache-Control": "no-store" } });
     }
 
     const { response, finalUrl } = await safeFetch(target, "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5");
