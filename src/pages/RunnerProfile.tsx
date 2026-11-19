@@ -1,6 +1,7 @@
 import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
-import { Bookmark, CalendarDays, Copy, Download, Globe2, Lock, MapPin, Share2 } from "lucide-react";
+import { Bookmark, CalendarDays, Copy, Download, Globe2, LoaderCircle, Lock, MapPin, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,8 @@ import { bucketListActivities, demoActivities, demoMilestones, demoProfile, demo
 import { findLikelyDuplicates } from "@/lib/duplicates";
 import { formatDistance } from "@/lib/format";
 import { product } from "@/lib/brand";
+import { fetchProfileByUsername } from "@/lib/profile";
+import { PublicProfile } from "@/components/movata/PublicProfile";
 
 const featured = specialRuns.filter((run) => run.highlightTypes?.includes("featured"));
 const favorites = specialRuns.filter((run) => run.highlightTypes?.includes("favorite"));
@@ -41,8 +44,7 @@ const setSocialMeta = (property: string, content: string) => {
   element.content = content;
 };
 
-const RunnerProfile = () => {
-  const { username } = useParams();
+const DemoProfile = ({ username }: { username?: string }) => {
   const isKnownProfile = !username || username === demoProfile.username;
   const duplicates = findLikelyDuplicates(specialRuns);
 
@@ -276,6 +278,26 @@ const RunnerProfile = () => {
       </div>
     </main>
   );
+};
+
+const RunnerProfile = () => {
+  const { username } = useParams();
+  const handle = (username ?? "").toLowerCase();
+  const lookup = useQuery({
+    queryKey: ["public-profile", handle],
+    queryFn: () => fetchProfileByUsername(handle),
+    enabled: Boolean(handle),
+  });
+
+  if (handle && lookup.isLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#fbfaf6] text-stone-500">
+        <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />Loading profile…
+      </main>
+    );
+  }
+  if (lookup.data) return <PublicProfile profile={lookup.data} />;
+  return <DemoProfile username={username} />;
 };
 
 export default RunnerProfile;
