@@ -50,15 +50,26 @@ export const fetchStravaConnection = async (userId: string) => {
 };
 
 /** Reads the signed-in athlete's cached Strava runs (RLS limits this to their own rows). */
+// Supabase returns at most 1,000 rows per request, so read the cache page by page.
+const ACTIVITY_PAGE_SIZE = 1000;
+const MAX_ACTIVITY_PAGES = 10;
+
 export const fetchStravaActivities = async (userId: string) => {
-  const { data, error } = await supabase
-    .from("strava_activities")
-    .select("activity")
-    .eq("user_id", userId)
-    .order("local_date", { ascending: false })
-    .limit(5000);
-  if (error) throw error;
-  return (data ?? []).map((row) => row.activity as NormalizedActivity);
+  const activities: NormalizedActivity[] = [];
+  for (let page = 0; page < MAX_ACTIVITY_PAGES; page += 1) {
+    const from = page * ACTIVITY_PAGE_SIZE;
+    const { data, error } = await supabase
+      .from("strava_activities")
+      .select("activity")
+      .eq("user_id", userId)
+      .order("local_date", { ascending: false })
+      .order("strava_activity_id", { ascending: false }) // stable order across pages
+      .range(from, from + ACTIVITY_PAGE_SIZE - 1);
+    if (error) throw error;
+    activities.push(...(data ?? []).map((row) => row.activity as NormalizedActivity));
+    if (!data || data.length < ACTIVITY_PAGE_SIZE) break;
+  }
+  return activities;
 };
 
 export const stravaActivityUrl = (activity: NormalizedActivity) =>
