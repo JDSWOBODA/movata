@@ -116,7 +116,15 @@ export const RaceDialog = ({ open, onOpenChange, draft, mode, username, submitti
             <Label htmlFor="rc-note">Note <span className="font-normal text-stone-400">(optional)</span></Label>
             <Textarea id="rc-note" value={note} maxLength={300} rows={2} onChange={(event) => setNote(event.target.value)} placeholder={status === "registered" ? "Summer goal race" : "Lottery hopeful"} />
           </div>
-          <ImagePicker kind="run" label="Photo (optional)" value={photo} onChange={setPhoto} onUploaded={(path) => setUploaded((paths) => [...paths, path])} />
+          <ImagePicker
+            kind="run"
+            label="Photo (optional)"
+            value={photo}
+            onChange={setPhoto}
+            onUploaded={(path) => setUploaded((paths) => [...paths, path])}
+            linkUrl={url}
+            onLinkPreview={(preview) => { if (!name.trim() && preview.title) setName(preview.title.slice(0, 120)); }}
+          />
 
           <p className="flex items-start gap-2 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-900">
             <Globe2 className="mt-0.5 h-4 w-4 shrink-0" />

@@ -113,7 +113,6 @@ export const GearDialog = ({ open, onOpenChange, draft, mode, username, submitti
             <Label htmlFor="gr-note">Why you love it <span className="font-normal text-stone-400">(optional)</span></Label>
             <Textarea id="gr-note" value={note} maxLength={300} rows={2} onChange={(event) => setNote(event.target.value)} placeholder="My go-to for long mountain days. 400 miles and still grippy." />
           </div>
-          <ImagePicker kind="gear" label="Photo (optional)" value={photo} onChange={setPhoto} onUploaded={(path) => setUploaded((paths) => [...paths, path])} />
 
           <div className="space-y-3 rounded-2xl border border-stone-200 p-3">
             <div className="space-y-2">
@@ -129,6 +128,16 @@ export const GearDialog = ({ open, onOpenChange, draft, mode, username, submitti
               <span><span className="font-medium">Gifted or sponsored.</span> I got this free or have a deal with the brand. Shown as a disclosure.</span>
             </label>
           </div>
+
+          <ImagePicker
+            kind="gear"
+            label="Photo (optional)"
+            value={photo}
+            onChange={setPhoto}
+            onUploaded={(path) => setUploaded((paths) => [...paths, path])}
+            linkUrl={productUrl}
+            onLinkPreview={(preview) => { if (!name.trim() && preview.title) setName(preview.title.slice(0, 100)); }}
+          />
 
           <div className="space-y-2">
             <Label htmlFor="gr-video">Video review or feature <span className="font-normal text-stone-400">(optional)</span></Label>
