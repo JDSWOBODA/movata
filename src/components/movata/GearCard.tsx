@@ -2,17 +2,19 @@ import type { ReactNode } from "react";
 import { ExternalLink, Gift, PlayCircle, ShoppingBag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { publicImageUrl } from "@/lib/images";
-import { GEAR_CATEGORY_LABELS, productLinkRel, type GearRow } from "@/lib/gear";
+import { GEAR_CATEGORY_LABELS, productLinkRel, type GearLinkType, type GearRow } from "@/lib/gear";
 import { linkHost } from "@/lib/links";
 
 interface GearCardProps {
   item: GearRow;
   /** Owner controls rendered under the card on the dashboard. */
   actions?: ReactNode;
+  /** Public pages: report link clicks (not passed for the owner, so they don't count themselves). */
+  onLinkClick?: (type: GearLinkType) => void;
 }
 
 /** One Gear Corner item, with its disclosures shown right next to the links they apply to. */
-export const GearCard = ({ item, actions }: GearCardProps) => {
+export const GearCard = ({ item, actions, onLinkClick }: GearCardProps) => {
   const photo = publicImageUrl(item.photo_path);
   return (
     <article className="flex flex-col overflow-hidden rounded-[1.4rem] border border-stone-200 bg-white shadow-sm">
@@ -34,13 +36,13 @@ export const GearCard = ({ item, actions }: GearCardProps) => {
           <div className="mt-auto space-y-2 pt-4">
             <div className="flex flex-wrap gap-2">
               {item.product_url ? (
-                <a href={item.product_url} target="_blank" rel={productLinkRel(item)}
+                <a href={item.product_url} target="_blank" rel={productLinkRel(item)} onClick={() => onLinkClick?.("product")} onAuxClick={(event) => { if (event.button === 1) onLinkClick?.("product"); }}
                   className="inline-flex items-center gap-1.5 rounded-full bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-800">
                   View product<ExternalLink className="h-3.5 w-3.5" />
                 </a>
               ) : null}
               {item.video_url ? (
-                <a href={item.video_url} target="_blank" rel="noopener noreferrer nofollow ugc"
+                <a href={item.video_url} target="_blank" rel="noopener noreferrer nofollow ugc" onClick={() => onLinkClick?.("video")} onAuxClick={(event) => { if (event.button === 1) onLinkClick?.("video"); }}
                   className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 px-3 py-1.5 text-sm font-medium hover:bg-stone-50">
                   <PlayCircle className="h-4 w-4" />Watch review
                 </a>

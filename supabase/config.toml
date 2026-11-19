@@ -11,3 +11,7 @@ verify_jwt = true
 # it verifies the Stripe signature itself.
 [functions.stripe-webhook]
 verify_jwt = false
+
+# Public profile pages report gear-link clicks without a Supabase login token.
+[functions.track-gear-click]
+verify_jwt = false

@@ -131,7 +131,7 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
 
         <RaceLists races={races.data ?? []} firstName={firstName} />
 
-        <GearCorner items={gear.data ?? []} firstName={firstName} />
+        <GearCorner items={gear.data ?? []} firstName={firstName} trackClicks={!isOwner && profile.is_public} />
 
         {!user ? (
           <section className="rounded-[2rem] bg-stone-950 p-6 text-white sm:p-8">

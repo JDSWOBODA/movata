@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Activity, ArrowDown, ArrowUp, Bookmark, CalendarCheck2, CalendarDays, CalendarPlus, Check, Flag, EyeOff, Flame, Globe2, LoaderCircle, Lock, LogOut, Medal, Pencil,
-  Plus, RefreshCw, Route, Settings, ShoppingBag, Sparkles, Star, Trash2, Unplug, UserRound, Zap,
+  MousePointerClick, Plus, RefreshCw, Route, Settings, ShoppingBag, Sparkles, Star, Trash2, Unplug, UserRound, Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -20,7 +20,8 @@ import { MarkRaceDoneDialog } from "@/components/movata/MarkRaceDoneDialog";
 import { GearDialog } from "@/components/movata/GearDialog";
 import { GearCard } from "@/components/movata/GearCard";
 import { useGear } from "@/hooks/use-gear";
-import { blankGear, type GearInput, type GearRow } from "@/lib/gear";
+import { blankGear, fetchGearClickStats, type GearInput, type GearRow } from "@/lib/gear";
+import { useQuery } from "@tanstack/react-query";
 import { useRaces } from "@/hooks/use-races";
 import { blankRace, formatRaceDate, groupRaces, type RaceInput, type RaceRow } from "@/lib/races";
 import { useSession } from "@/contexts/SessionContext";
@@ -97,6 +98,8 @@ const Dashboard = () => {
   const [raceDialog, setRaceDialog] = useState<{ mode: "add" | "edit"; draft: RaceInput; editingId?: string } | null>(null);
   const [finishing, setFinishing] = useState<RaceRow | null>(null);
   const gearList = useGear(Boolean(own.profile));
+  const gearStats = useQuery({ queryKey: ["gear-click-stats", user?.id], queryFn: fetchGearClickStats, enabled: Boolean(own.profile) && gearList.gear.length > 0 });
+  const gearClicks30 = [...(gearStats.data?.values() ?? [])].reduce((sum, entry) => sum + entry.product30 + entry.video30, 0);
   const [gearDialog, setGearDialog] = useState<{ mode: "add" | "edit"; draft: GearInput; editingId?: string } | null>(null);
   const [activeSection, setActiveSection] = useActiveSection();
   const [visibleRuns, setVisibleRuns] = useState(PAGE_SIZE);
@@ -517,6 +520,12 @@ const Dashboard = () => {
             <SectionTitle eyebrow="Public page" title="Gear Corner" icon={ShoppingBag}>
               <Button size="sm" className="rounded-full bg-emerald-700 text-white hover:bg-emerald-800" onClick={openAddGear}><Plus className="mr-1.5 h-4 w-4" />Add gear</Button>
             </SectionTitle>
+            {gearList.gear.length ? (
+              <p className="-mt-2 mb-4 flex items-center gap-2 text-sm text-stone-500">
+                <MousePointerClick className="h-4 w-4 text-emerald-700" />
+                {gearClicks30} link {gearClicks30 === 1 ? "click" : "clicks"} from visitors in the last 30 days. Each visitor counts once per link per day; your own clicks don't count.
+              </p>
+            ) : null}
             {!own.profile ? (
               <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-center text-stone-600">Create your profile to start your Gear Corner.</p>
             ) : gearList.gear.length ? (
@@ -524,6 +533,18 @@ const Dashboard = () => {
                 {gearList.gear.map((item, index) => (
                   <GearCard key={item.id} item={item} actions={
                     <div className="flex flex-wrap items-center gap-1.5">
+                      {(() => {
+                        const stat = gearStats.data?.get(item.id);
+                        const parts = [
+                          item.product_url ? `${stat?.product30 ?? 0} product` : null,
+                          item.video_url ? `${stat?.video30 ?? 0} video` : null,
+                        ].filter(Boolean);
+                        return parts.length ? (
+                          <p className="w-full text-xs text-stone-500" title={`All time: ${stat?.productAll ?? 0} product · ${stat?.videoAll ?? 0} video`}>
+                            {parts.join(" · ")} clicks · 30 days
+                          </p>
+                        ) : null;
+                      })()}
                       <Button size="sm" variant="outline" className="rounded-full" onClick={() => openEditGear(item)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
                       <Button size="sm" variant="ghost" className="rounded-full px-2" aria-label="Move earlier" disabled={index === 0 || gearList.move.isPending} onClick={() => gearList.move.mutate({ index, direction: -1 })}><ArrowUp className="h-4 w-4" /></Button>
                       <Button size="sm" variant="ghost" className="rounded-full px-2" aria-label="Move later" disabled={index === gearList.gear.length - 1 || gearList.move.isPending} onClick={() => gearList.move.mutate({ index, direction: 1 })}><ArrowDown className="h-4 w-4" /></Button>

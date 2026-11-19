@@ -1,8 +1,8 @@
-import type { GearRow } from "@/lib/gear";
+import { trackGearClick, type GearRow } from "@/lib/gear";
 import { GearCard } from "./GearCard";
 
 /** Public Gear Corner: current rotation first, then past favorites. */
-export const GearCorner = ({ items, firstName }: { items: GearRow[]; firstName: string }) => {
+export const GearCorner = ({ items, firstName, trackClicks }: { items: GearRow[]; firstName: string; trackClicks: boolean }) => {
   if (!items.length) return null;
   const current = items.filter((item) => item.in_rotation);
   const past = items.filter((item) => !item.in_rotation);
@@ -18,12 +18,12 @@ export const GearCorner = ({ items, firstName }: { items: GearRow[]; firstName: 
         {disclosed ? <p className="max-w-md text-sm text-stone-500">Some links are affiliate links or gifted gear; each is labeled on its card.</p> : null}
       </div>
       {current.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{current.map((item) => <GearCard key={item.id} item={item} />)}</div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{current.map((item) => <GearCard key={item.id} item={item} onLinkClick={trackClicks ? (type) => trackGearClick(item.id, type) : undefined} />)}</div>
       ) : null}
       {past.length ? (
         <>
           <h3 className="mb-3 mt-8 font-semibold text-stone-700">Past favorites</h3>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{past.map((item) => <GearCard key={item.id} item={item} />)}</div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{past.map((item) => <GearCard key={item.id} item={item} onLinkClick={trackClicks ? (type) => trackGearClick(item.id, type) : undefined} />)}</div>
         </>
       ) : null}
     </section>
