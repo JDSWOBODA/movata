@@ -177,8 +177,8 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[240px_1fr] lg:px-8">
-        <aside className="sticky top-[65px] z-20 -mx-4 bg-[#fbfaf6]/95 px-4 py-1 backdrop-blur lg:top-24 lg:mx-0 lg:h-fit lg:bg-transparent lg:p-0">
+      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:px-8">
+        <aside className="sticky top-[65px] z-20 -mx-4 min-w-0 bg-[#fbfaf6]/95 px-4 py-1 backdrop-blur lg:top-24 lg:mx-0 lg:h-fit lg:bg-transparent lg:p-0">
           <nav className="flex gap-2 overflow-x-auto rounded-[1.5rem] border border-stone-200 bg-white p-3 shadow-sm lg:flex-col" aria-label="Dashboard navigation">
             {sections.map(({ id, label }) => (
               <a
