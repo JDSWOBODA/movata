@@ -20,6 +20,11 @@ const STRAVA_API = "https://www.strava.com/api/v3";
 const PAGE_SIZE = 200;
 const MAX_PAGES = 15; // ~3,000 activities; keeps one sync well inside Strava's read rate limit
 const RUN_SPORT_TYPES = new Set(["Run", "TrailRun", "VirtualRun"]);
+const METERS_PER_MILE = 1609.344;
+// Exact fastest-mile lookups cost one Strava request per run, so only check likely candidates:
+// the fastest-paced runs of at least a mile plus the most recent races.
+const BEST_MILE_FASTEST_RUNS = 10;
+const BEST_MILE_RECENT_RACES = 5;
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -163,6 +168,55 @@ const getAccessToken = async (
   return tokens.access_token as string;
 };
 
+// ---- fastest mile ---------------------------------------------------------------------------
+type NormalizedRun = ReturnType<typeof normalize> & { bestMileSeconds?: number | null };
+
+/**
+ * Adds bestMileSeconds (Strava's "1 mile" best effort) to the likeliest fastest-mile runs.
+ * null means "checked, no mile effort". Values cached by an earlier sync are reused, and a rate
+ * limit just stops the lookups early; it never fails the sync.
+ */
+const attachBestMiles = async (admin: SupabaseClient, userId: string, runs: NormalizedRun[], accessToken: string) => {
+  const fastest = runs
+    .filter((run) => run.distanceMeters >= METERS_PER_MILE && run.averagePaceSecondsPerKm)
+    .sort((a, b) => a.averagePaceSecondsPerKm! - b.averagePaceSecondsPerKm!)
+    .slice(0, BEST_MILE_FASTEST_RUNS);
+  const races = runs
+    .filter((run) => run.isRace && run.distanceMeters >= METERS_PER_MILE)
+    .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
+    .slice(0, BEST_MILE_RECENT_RACES);
+  const candidates = [...new Map([...fastest, ...races].map((run) => [run.externalId, run])).values()];
+  if (!candidates.length) return;
+
+  const { data: cachedRows } = await admin
+    .from("strava_activities")
+    .select("strava_activity_id, activity")
+    .eq("user_id", userId)
+    .in("strava_activity_id", candidates.map((run) => Number(run.externalId)));
+  const cached = new Map(
+    (cachedRows ?? [])
+      .map((row) => [String(row.strava_activity_id), (row.activity as { bestMileSeconds?: number | null }).bestMileSeconds] as const)
+      .filter(([, value]) => value !== undefined),
+  );
+
+  let fetched = 0;
+  for (const run of candidates) {
+    if (cached.has(run.externalId)) {
+      run.bestMileSeconds = cached.get(run.externalId);
+      continue;
+    }
+    try {
+      const detail = await stravaGet(`/activities/${run.externalId}`, accessToken) as { best_efforts?: { name: string; elapsed_time: number }[] };
+      run.bestMileSeconds = detail.best_efforts?.find((effort) => effort.name === "1 mile")?.elapsed_time ?? null;
+      fetched += 1;
+    } catch (error) {
+      console.warn(`[${functionName}] Best-effort lookup stopped`, { fetched, error: error instanceof Error ? error.message : String(error) });
+      break;
+    }
+  }
+  console.log(`[${functionName}] Fastest-mile lookups`, { candidates: candidates.length, fetched, reused: candidates.length - fetched });
+};
+
 // ---- handler --------------------------------------------------------------------------------
 console.info("[strava-sync] Function initialized");
 
@@ -230,7 +284,7 @@ serve(async (req) => {
     await admin.rpc("purge_stale_strava_cache");
     const accessToken = await getAccessToken(admin, connection, { clientId, clientSecret, encryptionKey });
 
-    const runs: ReturnType<typeof normalize>[] = [];
+    const runs: NormalizedRun[] = [];
     let complete = false;
     for (let page = 1; page <= MAX_PAGES; page += 1) {
       const batch = await stravaGet(`/athlete/activities?per_page=${PAGE_SIZE}&page=${page}`, accessToken) as StravaActivity[];
@@ -242,6 +296,8 @@ serve(async (req) => {
         break;
       }
     }
+
+    await attachBestMiles(admin, userId, runs, accessToken);
 
     for (let i = 0; i < runs.length; i += 500) {
       const rows = runs.slice(i, i + 500).map((run) => ({

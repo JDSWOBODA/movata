@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Activity, ArrowDown, ArrowUp, CalendarCheck2, Check, EyeOff, Flame, Globe2, LoaderCircle, Lock, LogOut, Medal, Pencil,
-  Plus, RefreshCw, Settings, Sparkles, Star, Trash2, Unplug, UserRound,
+  Plus, RefreshCw, Route, Settings, Sparkles, Star, Trash2, Unplug, UserRound, Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -21,6 +21,7 @@ import { useOwnProfile } from "@/hooks/use-profile";
 import { calculateStreakSummary } from "@/lib/streaks";
 import { summarizeActivities } from "@/lib/activity-stats";
 import { formatDate, formatDistance, formatDuration, formatPace } from "@/lib/format";
+import { fastestMileRun, suggestHighlights } from "@/lib/highlight-suggestions";
 import { blankDraft, draftFromActivity, featuredRunToActivity, type FeaturedRunInput, type FeaturedRunRow } from "@/lib/profile";
 import type { NormalizedActivity } from "@/lib/movata-types";
 
@@ -115,24 +116,25 @@ const Dashboard = () => {
     const longestTime = sortedRuns.reduce((best, run) => (run.movingTimeSeconds > best.movingTimeSeconds ? run : best));
     const paced = sortedRuns.filter((run) => run.distanceMeters >= 5000 && run.averagePaceSecondsPerKm);
     const fastest = paced.length ? paced.reduce((best, run) => (run.averagePaceSecondsPerKm! < best.averagePaceSecondsPerKm! ? run : best)) : null;
+    const bestMile = fastestMileRun(sortedRuns);
     const climbs = sortedRuns.filter((run) => run.elevationGainMeters);
     const climb = climbs.length ? climbs.reduce((best, run) => (run.elevationGainMeters! > best.elevationGainMeters! ? run : best)) : null;
     return [
       { label: "Longest run", value: formatDistance(longest.distanceMeters, unit), run: longest },
       { label: "Longest time on feet", value: formatDuration(longestTime.movingTimeSeconds), run: longestTime },
+      ...(bestMile ? [{ label: "Fastest mile", value: formatDuration(bestMile.bestMileSeconds), run: bestMile as NormalizedActivity }] : []),
       ...(fastest ? [{ label: "Fastest pace (5k+)", value: formatPace(fastest.averagePaceSecondsPerKm, unit), run: fastest }] : []),
       ...(climb ? [{ label: "Most climbing", value: `${Math.round(climb.elevationGainMeters!)} m`, run: climb }] : []),
     ];
   }, [sortedRuns, unit]);
 
-  const suggestions = useMemo(() => {
-    if (!usingStrava) return [];
-    const picks = records.map((record) => record.run);
-    return picks
-      .filter((run, index) => picks.findIndex((other) => other.id === run.id) === index)
-      .filter((run) => !(run.externalId && featuredStravaIds.has(run.externalId)))
-      .slice(0, 3);
-  }, [records, usingStrava, featuredStravaIds]);
+  const suggestions = useMemo(
+    () => (usingStrava
+      ? suggestHighlights(sortedRuns, (run) => Boolean(run.externalId && featuredStravaIds.has(run.externalId)), unit)
+      : { longest: [], fastestMile: [] }),
+    [sortedRuns, usingStrava, featuredStravaIds, unit],
+  );
+  const bestMilesChecked = sortedRuns.some((run) => run.bestMileSeconds !== undefined);
 
   const requireProfile = () => {
     if (own.profile) return true;
@@ -141,8 +143,8 @@ const Dashboard = () => {
     return false;
   };
 
-  const openFeature = (activity: NormalizedActivity) => {
-    if (requireProfile()) setDialog({ mode: "add", draft: draftFromActivity(activity) });
+  const openFeature = (activity: NormalizedActivity, note = "") => {
+    if (requireProfile()) setDialog({ mode: "add", draft: { ...draftFromActivity(activity), note } });
   };
   const openManual = () => {
     if (requireProfile()) setDialog({ mode: "add", draft: blankDraft() });
@@ -310,18 +312,32 @@ const Dashboard = () => {
                 ))}
               </ol>
             )}
-            {suggestions.length && own.profile ? (
-              <div className="mt-6 border-t border-stone-200 pt-5">
-                <p className="text-sm font-semibold text-stone-700">Suggested from your records</p>
-                <div className="mt-3 space-y-2">
-                  {suggestions.map((run) => (
-                    <div key={run.id} className="flex flex-wrap items-center gap-3 rounded-2xl bg-stone-50 p-3 text-sm">
-                      <Medal className="h-4 w-4 text-emerald-700" />
-                      <span className="min-w-0 flex-1 truncate">{run.title} · {formatDistance(run.distanceMeters, unit)} · {formatDate(run.localDate)}</span>
-                      <Button size="sm" variant="outline" className="rounded-full bg-white" onClick={() => openFeature(run)}><Star className="mr-1.5 h-3.5 w-3.5" />Feature</Button>
+            {usingStrava && own.profile ? (
+              <div className="mt-6 grid gap-5 border-t border-stone-200 pt-5 md:grid-cols-2">
+                {([
+                  { title: "Longest runs", icon: Route, items: suggestions.longest, empty: "Every long run is already featured." },
+                  {
+                    title: "Fastest miles",
+                    icon: Zap,
+                    items: suggestions.fastestMile,
+                    empty: bestMilesChecked ? "No other mile efforts found yet." : "Fastest miles appear after your next sync.",
+                  },
+                ] as const).map((group) => (
+                  <div key={group.title}>
+                    <p className="flex items-center gap-2 text-sm font-semibold text-stone-700"><group.icon className="h-4 w-4 text-emerald-700" />Suggested · {group.title}</p>
+                    <div className="mt-3 space-y-2">
+                      {group.items.length ? group.items.map((item) => (
+                        <div key={item.run.id} className="flex items-center gap-3 rounded-2xl bg-stone-50 p-3 text-sm">
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium text-stone-900">{item.run.title}</p>
+                            <p className="truncate text-stone-500">{item.reason} · {formatDate(item.run.localDate)}</p>
+                          </div>
+                          <Button size="sm" variant="outline" className="shrink-0 rounded-full bg-white" onClick={() => openFeature(item.run, item.note)}><Star className="mr-1.5 h-3.5 w-3.5" />Feature</Button>
+                        </div>
+                      )) : <p className="rounded-2xl bg-stone-50 p-3 text-sm text-stone-500">{group.empty}</p>}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             ) : null}
           </section>

@@ -35,6 +35,8 @@ export interface NormalizedActivity {
   elapsedTimeSeconds: number;
   averagePaceSecondsPerKm?: number;
   bestPaceSecondsPerKm?: number;
+  /** Strava's "1 mile" best effort in seconds; null = checked and none, undefined = not checked. */
+  bestMileSeconds?: number | null;
   elevationGainMeters?: number;
   averageHeartRate?: number;
   maximumHeartRate?: number;
