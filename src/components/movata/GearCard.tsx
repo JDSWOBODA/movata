@@ -48,7 +48,7 @@ export const GearCard = ({ item, actions }: GearCardProps) => {
             </div>
             <div className="space-y-0.5 text-xs text-stone-500">
               {item.product_url && item.is_affiliate ? <p><span className="font-semibold text-stone-700">Affiliate link:</span> the runner may earn a commission from purchases ({linkHost(item.product_url)}).</p> : null}
-              {item.is_gifted ? <p className="inline-flex items-center gap-1"><Gift className="h-3.5 w-3.5" /><span className="font-semibold text-stone-700">Gifted or sponsored</span> by the brand.</p> : null}
+              {item.is_gifted ? <p className="flex items-start gap-1"><Gift className="mt-px h-3.5 w-3.5 shrink-0" /><span><span className="font-semibold text-stone-700">Gifted or sponsored</span> by the brand.</span></p> : null}
             </div>
           </div>
         ) : null}
