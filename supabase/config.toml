@@ -25,3 +25,7 @@ verify_jwt = true
 # Public profile pages report views and cheers without a Supabase login token.
 [functions.engage]
 verify_jwt = false
+
+# Public profile pages report link-block clicks without a Supabase login token.
+[functions.track-link-click]
+verify_jwt = false

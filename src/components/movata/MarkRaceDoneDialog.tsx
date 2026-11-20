@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatDate, formatDistance, formatDuration } from "@/lib/format";
 import type { NormalizedActivity } from "@/lib/movata-types";
-import type { FeaturedRunRow } from "@/lib/profile";
+import { matchFeatured, type FeaturedRunRow } from "@/lib/profile";
 import type { RaceRow } from "@/lib/races";
 
 const DAY_MS = 86_400_000;
@@ -38,23 +38,19 @@ export const MarkRaceDoneDialog = ({ race, runs, featuredRuns, unit, busy, onClo
       .slice(0, 6);
   }, [race, runs]);
 
-  const featuredByStravaId = useMemo(
-    () => new Map(featuredRuns.filter((run) => run.strava_activity_id).map((run) => [String(run.strava_activity_id), run])),
-    [featuredRuns],
-  );
 
   return (
     <Dialog open={Boolean(race)} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-h-[92vh] overflow-y-auto rounded-[1.5rem] sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><Flag className="h-5 w-5 text-emerald-700" />How did {race?.name} go?</DialogTitle>
-          <DialogDescription>Pick the run that was the race. It becomes a featured “Best race” run on your page.</DialogDescription>
+          <DialogDescription>Enter your result, or pick the run that was the race to feature it. Your Strava runs are listed for you only; you'll type what gets published.</DialogDescription>
         </DialogHeader>
 
         {candidates.length ? (
           <ul className="space-y-2">
             {candidates.map((run) => {
-              const alreadyFeatured = run.externalId ? featuredByStravaId.get(run.externalId) : undefined;
+              const alreadyFeatured = matchFeatured(run, featuredRuns);
               return (
                 <li key={run.id} className="flex items-center gap-3 rounded-2xl border border-stone-200 p-3">
                   <div className="min-w-0 flex-1">

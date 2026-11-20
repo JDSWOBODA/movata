@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Globe2, LoaderCircle, Trash2 } from "lucide-react";
+import { Globe2, LoaderCircle, Lock, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -7,12 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { deleteImages } from "@/lib/images";
 import type { MilestoneInput } from "@/lib/milestones";
+import type { PrivateReference } from "@/lib/profile";
 import { ImagePicker } from "./ImagePicker";
 
 interface MilestoneDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   draft: MilestoneInput | null;
+  /** A private suggestion worked out from the runner's Strava runs: shown, never prefilled. */
+  reference?: PrivateReference | null;
   mode: "add" | "edit";
   username: string;
   submitting: boolean;
@@ -20,7 +23,7 @@ interface MilestoneDialogProps {
   onRemove?: () => void;
 }
 
-export const MilestoneDialog = ({ open, onOpenChange, draft, mode, username, submitting, onSubmit, onRemove }: MilestoneDialogProps) => {
+export const MilestoneDialog = ({ open, onOpenChange, draft, reference, mode, username, submitting, onSubmit, onRemove }: MilestoneDialogProps) => {
   const [title, setTitle] = useState("");
   const [detail, setDetail] = useState("");
   const [date, setDate] = useState("");
@@ -47,19 +50,31 @@ export const MilestoneDialog = ({ open, onOpenChange, draft, mode, username, sub
     if (!date) return setError("Pick the date you reached it.");
     void deleteImages(uploaded.filter((path) => path !== photo));
     setUploaded(photo && uploaded.includes(photo) ? [photo] : []);
-    onSubmit({ ...draft, title: title.trim().slice(0, 100), detail: detail.trim().slice(0, 300), achieved_on: date, photo_path: photo });
+    onSubmit({ ...draft, title: title.trim().slice(0, 100), detail: detail.trim().slice(0, 300), achieved_on: date, photo_path: photo, needs_review: false });
   };
 
-  const suggested = mode === "add" && draft?.key;
+  const reviewing = mode === "edit" && draft?.needs_review;
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next) discardUploads(); onOpenChange(next); }}>
       <DialogContent className="max-h-[92vh] overflow-y-auto rounded-[1.5rem] sm:max-w-lg">
         <form onSubmit={submit} className="space-y-4">
           <DialogHeader>
-            <DialogTitle>{mode === "edit" ? "Edit milestone" : suggested ? "Add this milestone" : "Add a milestone"}</DialogTitle>
-            <DialogDescription>{suggested ? "Worked out from your runs. Edit anything before publishing." : "A moment worth marking: a streak, a total, a first."}</DialogDescription>
+            <DialogTitle>{reviewing ? "Review this milestone" : mode === "edit" ? "Edit milestone" : reference ? "Add this milestone" : "Add a milestone"}</DialogTitle>
+            <DialogDescription>
+              {reviewing
+                ? "This milestone was filled in from your Strava runs, so it's hidden from visitors. Check it and save to publish it as your own entry."
+                : "A moment worth marking: a streak, a total, a first."}
+            </DialogDescription>
           </DialogHeader>
+          {reference ? (
+            <div className="rounded-2xl border border-stone-200 bg-stone-50 p-3 text-sm">
+              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-stone-500"><Lock className="h-3 w-3" />Spotted in your Strava runs · only you see this</p>
+              <p className="mt-1 font-medium text-stone-900">{reference.heading}</p>
+              {reference.lines.map((line) => <p key={line} className="text-stone-600">{line}</p>)}
+              <p className="mt-2 text-xs text-stone-500">Strava's rules don't let us publish Strava data for you, so write the milestone in your own words.</p>
+            </div>
+          ) : null}
           <div className="space-y-2">
             <Label htmlFor="ms-title">Title</Label>
             <Input id="ms-title" value={title} maxLength={100} onChange={(event) => setTitle(event.target.value)} placeholder="First 100-mile week" />

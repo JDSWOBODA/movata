@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { HighlightType, NormalizedActivity } from "./movata-types";
 import { publicImageUrl } from "./images";
+import { formatDate, formatDistance, formatDuration } from "./format";
 
 export interface ProfileRow {
   id: string;
@@ -26,10 +27,14 @@ export interface FeaturedRunRow {
   moving_time_seconds: number;
   note: string;
   highlight_type: HighlightType;
+  /** "strava" only on legacy rows prefilled from Strava; new rows are always typed by the runner. */
   source: "manual" | "strava";
+  /** Always null now (Strava IDs aren't retained). Kept for the legacy column. */
   strava_activity_id: number | null;
   photo_path: string | null;
   position: number;
+  /** Legacy Strava-prefilled row: hidden from visitors until the runner reviews and saves it. */
+  needs_review: boolean;
 }
 
 export type FeaturedRunInput = Omit<FeaturedRunRow, "id" | "user_id" | "position">;
@@ -55,7 +60,7 @@ export const HIGHLIGHT_LABELS: Record<HighlightType, string> = {
 };
 
 const PROFILE_COLUMNS = "id,username,display_name,bio,location,running_since,preferred_unit,is_public,avatar_path,cover_path";
-const FEATURED_COLUMNS = "id,user_id,title,run_date,distance_meters,moving_time_seconds,note,highlight_type,source,strava_activity_id,photo_path,position";
+const FEATURED_COLUMNS = "id,user_id,title,run_date,distance_meters,moving_time_seconds,note,highlight_type,source,strava_activity_id,photo_path,position,needs_review";
 
 export const fetchOwnProfile = async (userId: string) => {
   const { data, error } = await supabase.from("profiles").select(PROFILE_COLUMNS).eq("id", userId).maybeSingle();
@@ -115,8 +120,9 @@ export const removeFeaturedRun = async (id: string) => {
 /** Shape a featured run for RunCard. */
 export const featuredRunToActivity = (run: FeaturedRunRow): NormalizedActivity => ({
   id: run.id,
-  provider: run.source,
-  externalId: run.strava_activity_id ? String(run.strava_activity_id) : undefined,
+  // Featured runs are the runner's own entries, never Strava data, so no Strava link or attribution.
+  provider: "manual",
+  externalId: undefined,
   title: run.title,
   activityType: "Run",
   startedAt: `${run.run_date}T12:00:00`,
@@ -133,18 +139,27 @@ export const featuredRunToActivity = (run: FeaturedRunRow): NormalizedActivity =
   photos: run.photo_path ? [publicImageUrl(run.photo_path)!] : undefined,
 });
 
-/** Prefill values for the "Feature this run" form from one of the runner's own Strava runs. */
-export const draftFromActivity = (activity: NormalizedActivity): FeaturedRunInput => ({
-  title: activity.title,
-  run_date: activity.localDate,
-  distance_meters: Math.round(activity.distanceMeters * 10) / 10,
-  moving_time_seconds: activity.movingTimeSeconds,
-  note: "",
-  highlight_type: "featured",
-  photo_path: null,
-  source: activity.provider === "strava" && activity.externalId ? "strava" : "manual",
-  strava_activity_id: activity.provider === "strava" && activity.externalId ? Number(activity.externalId) : null,
+/** A Strava run shown privately beside an empty form, so the runner can type what to publish. */
+export interface PrivateReference {
+  heading: string;
+  lines: string[];
+  url?: string;
+}
+
+export const stravaReference = (activity: NormalizedActivity, unit: "mi" | "km"): PrivateReference => ({
+  heading: activity.title,
+  lines: [
+    `${formatDate(activity.localDate)} · ${formatDistance(activity.distanceMeters, unit, 2)} · ${formatDuration(activity.movingTimeSeconds)}`,
+  ],
+  url: activity.provider === "strava" && activity.externalId ? `https://www.strava.com/activities/${activity.externalId}` : undefined,
 });
+
+/**
+ * Has the runner already featured this run? Matched on what they typed (same date, distance within
+ * 3%), so no Strava IDs need to be stored.
+ */
+export const matchFeatured = (activity: NormalizedActivity, featured: FeaturedRunRow[]) =>
+  featured.find((run) => run.run_date === activity.localDate && Math.abs(run.distance_meters - activity.distanceMeters) <= activity.distanceMeters * 0.03);
 
 /** Empty form for a manually entered featured run. */
 export const blankDraft = (): FeaturedRunInput => ({
@@ -157,4 +172,5 @@ export const blankDraft = (): FeaturedRunInput => ({
   source: "manual",
   strava_activity_id: null,
   photo_path: null,
+  needs_review: false,
 });

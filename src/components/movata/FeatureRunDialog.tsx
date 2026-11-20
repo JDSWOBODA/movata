@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Globe2, LoaderCircle } from "lucide-react";
+import { ExternalLink, Globe2, LoaderCircle, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDuration, metersToKm, metersToMiles } from "@/lib/format";
-import { HIGHLIGHT_LABELS, type FeaturedRunInput } from "@/lib/profile";
+import { HIGHLIGHT_LABELS, type FeaturedRunInput, type PrivateReference } from "@/lib/profile";
 import { deleteImages } from "@/lib/images";
 import { ImagePicker } from "./ImagePicker";
 import type { HighlightType } from "@/lib/movata-types";
@@ -15,8 +15,10 @@ import type { HighlightType } from "@/lib/movata-types";
 interface FeatureRunDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Starting values: prefilled from a run, an existing featured run, or blank for manual entry. */
+  /** Starting values: an existing featured run, or blank for a new one. Never prefilled from Strava. */
   draft: FeaturedRunInput | null;
+  /** The runner's own Strava run, shown only to them as something to copy from. */
+  reference?: PrivateReference | null;
   mode: "add" | "edit";
   unit: "mi" | "km";
   username: string;
@@ -36,7 +38,7 @@ const parseDuration = (text: string) => {
   return null;
 };
 
-export const FeatureRunDialog = ({ open, onOpenChange, draft, mode, unit, username, submitting, onSubmit }: FeatureRunDialogProps) => {
+export const FeatureRunDialog = ({ open, onOpenChange, draft, reference, mode, unit, username, submitting, onSubmit }: FeatureRunDialogProps) => {
   const [title, setTitle] = useState("");
   const [runDate, setRunDate] = useState(today());
   const [distance, setDistance] = useState("");
@@ -61,7 +63,7 @@ export const FeatureRunDialog = ({ open, onOpenChange, draft, mode, unit, userna
     setError(null);
   }, [open, draft, unit]);
 
-  const fromStrava = draft?.source === "strava";
+  const reviewing = mode === "edit" && draft?.needs_review;
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -84,6 +86,10 @@ export const FeatureRunDialog = ({ open, onOpenChange, draft, mode, unit, userna
       note: note.trim().slice(0, 500),
       highlight_type: highlight,
       photo_path: photo,
+      // Saving means the runner has entered (or confirmed) these values themselves.
+      source: "manual",
+      strava_activity_id: null,
+      needs_review: false,
     });
   };
 
@@ -99,11 +105,27 @@ export const FeatureRunDialog = ({ open, onOpenChange, draft, mode, unit, userna
       <DialogContent className="max-h-[92vh] overflow-y-auto rounded-[1.5rem] sm:max-w-lg">
         <form onSubmit={submit} className="space-y-4">
           <DialogHeader>
-            <DialogTitle>{mode === "edit" ? "Edit featured run" : fromStrava ? "Feature this run" : "Add a run to feature"}</DialogTitle>
+            <DialogTitle>{reviewing ? "Review this featured run" : mode === "edit" ? "Edit featured run" : reference ? "Feature this run" : "Add a run to feature"}</DialogTitle>
             <DialogDescription>
-              {fromStrava ? "Filled in from your Strava run. Edit anything before publishing." : "Enter the details you want people to see."}
+              {reviewing
+                ? "This run was filled in from Strava, so it's hidden from visitors. Check the details and save to publish it as your own entry."
+                : "Enter the details you want people to see."}
             </DialogDescription>
           </DialogHeader>
+
+          {reference ? (
+            <div className="rounded-2xl border border-stone-200 bg-stone-50 p-3 text-sm">
+              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-stone-500"><Lock className="h-3 w-3" />Your Strava run · only you see this</p>
+              <p className="mt-1 font-medium text-stone-900">{reference.heading}</p>
+              {reference.lines.map((line) => <p key={line} className="text-stone-600">{line}</p>)}
+              {reference.url ? (
+                <a href={reference.url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-[#FC5200] underline underline-offset-2">
+                  View on Strava<ExternalLink className="h-3 w-3" />
+                </a>
+              ) : null}
+              <p className="mt-2 text-xs text-stone-500">Strava's rules don't let us publish Strava data for you, so type the details you want on your page.</p>
+            </div>
+          ) : null}
 
           <ImagePicker kind="run" label="Photo (optional)" value={photo} onChange={setPhoto} onUploaded={(path) => setUploaded((paths) => [...paths, path])} />
 

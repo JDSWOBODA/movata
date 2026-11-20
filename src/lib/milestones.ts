@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { NormalizedActivity, StreakSummary } from "./movata-types";
 import { formatDate, metersToKm, metersToMiles } from "./format";
+import { opaqueKey } from "./hash";
 
 export type MilestoneKind = "yearly_distance" | "streak" | "long_run" | "race" | "custom";
 
@@ -14,11 +15,13 @@ export interface MilestoneRow {
   achieved_on: string;
   photo_path: string | null;
   position: number;
+  /** Legacy row filled in from a Strava-derived suggestion: hidden from visitors until reviewed. */
+  needs_review: boolean;
 }
 
-export type MilestoneInput = Pick<MilestoneRow, "key" | "kind" | "title" | "detail" | "achieved_on" | "photo_path">;
+export type MilestoneInput = Pick<MilestoneRow, "key" | "kind" | "title" | "detail" | "achieved_on" | "photo_path" | "needs_review">;
 
-const COLUMNS = "id,user_id,key,kind,title,detail,achieved_on,photo_path,position";
+const COLUMNS = "id,user_id,key,kind,title,detail,achieved_on,photo_path,position,needs_review";
 
 export const fetchMilestones = async (userId: string) => {
   const { data, error } = await supabase.from("milestones").select(COLUMNS).eq("user_id", userId).order("achieved_on", { ascending: false });
@@ -62,11 +65,17 @@ export const blankMilestone = (): MilestoneInput => ({
   detail: "",
   achieved_on: new Date().toISOString().slice(0, 10),
   photo_path: null,
+  needs_review: false,
 });
 
 // ---- suggestions -------------------------------------------------------------------------------
 
-export interface MilestoneSuggestion extends MilestoneInput {
+/**
+ * A private idea shown only on the owner's dashboard. Its title/detail come from Strava data, so
+ * they are never saved: "Add to page" opens an empty form with this shown as a reference.
+ * `key` is already an opaque hash (safe to store).
+ */
+export interface MilestoneSuggestion extends Omit<MilestoneInput, "needs_review"> {
   key: string;
   /** Short reason shown on the dashboard card. */
   why: string;
@@ -177,6 +186,7 @@ export const suggestMilestones = (
   });
 
   return suggestions
+    .map((s) => ({ ...s, key: opaqueKey(s.key) }))
     .filter((s) => !exclude.has(s.key))
     .sort((a, b) => b.achieved_on.localeCompare(a.achieved_on))
     .slice(0, limit);

@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Copy, LoaderCircle, MapPin, Share2, Sparkles } from "lucide-react";
+import { CalendarDays, Copy, LoaderCircle, MapPin, QrCode, Share2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/movata/Logo";
@@ -13,6 +13,9 @@ import { publicImageUrl } from "@/lib/images";
 import { fetchRaceGoals, fetchRaces } from "@/lib/races";
 import { RaceResults, visibleToPublic } from "@/components/movata/RaceResults";
 import { RaceLists } from "@/components/movata/RaceLists";
+import { QrCodeDialog } from "@/components/movata/QrCodeDialog";
+import { LinkBlocks } from "@/components/movata/LinkBlocks";
+import { fetchLinks } from "@/lib/profile-links";
 import { GearCorner } from "@/components/movata/GearCorner";
 import { CheerButton } from "@/components/movata/CheerButton";
 import { MilestoneTimeline } from "@/components/movata/MilestoneTimeline";
@@ -42,15 +45,17 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
   // Owners preview exactly what visitors get: public races and shared goals only.
   const publicRaces = visibleToPublic(races.data ?? [], raceGoals.data ?? new Map());
   const gear = useQuery({ queryKey: ["public-gear", profile.id], queryFn: () => fetchGear(profile.id) });
+  const links = useQuery({ queryKey: ["public-links", profile.id], queryFn: () => fetchLinks(profile.id) });
   const milestones = useQuery({ queryKey: ["public-milestones", profile.id], queryFn: () => fetchMilestones(profile.id) });
   const cheers = useQuery({ queryKey: ["public-cheers", profile.id], queryFn: () => fetchCheerCounts(profile.id) });
-  const runs = (featured.data ?? []).map(featuredRunToActivity);
+  // Owners preview what visitors see: entries awaiting review are hidden here too.
+  const runs = (featured.data ?? []).filter((run) => !run.needs_review).map(featuredRunToActivity);
+  const publicMilestones = (milestones.data ?? []).filter((milestone) => !milestone.needs_review);
 
   // Count the visit once the session is known, so owners never count their own views.
   useEffect(() => {
     if (!sessionLoading && !isOwner && profile.is_public) trackProfileView(profile.id);
   }, [sessionLoading, isOwner, profile.id, profile.is_public]);
-  const anyFromStrava = runs.some((run) => run.provider === "strava");
 
   useEffect(() => {
     const title = `${name}'s running story · ${product.name}`;
@@ -79,18 +84,22 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
     await copyLink();
   };
 
+  const [showQr, setShowQr] = useState(false);
+  const profileUrl = `${window.location.origin}/${profile.username}`;
   const avatarUrl = publicImageUrl(profile.avatar_path);
   const coverUrl = publicImageUrl(profile.cover_path);
   const initials = name.replace("@", "").split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
 
   return (
     <main className="min-h-screen bg-[#fbfaf6] text-stone-950">
+      <QrCodeDialog open={showQr} onOpenChange={setShowQr} url={profileUrl} username={profile.username} title={isOwner ? "Your page as a QR code" : `${firstName}'s page as a QR code`} />
       <div className="border-b border-stone-200 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
           <Logo />
           <div className="flex items-center gap-2">
             {isOwner ? <Button asChild variant="ghost" className="rounded-full"><Link to="/dashboard#highlights">Edit page</Link></Button> : null}
             <Button variant="ghost" className="hidden rounded-full sm:inline-flex" onClick={() => void copyLink()}><Copy className="mr-2 h-4 w-4" />Copy link</Button>
+            <Button variant="ghost" size="icon" className="rounded-full" aria-label="QR code" onClick={() => setShowQr(true)}><QrCode className="h-4 w-4" /></Button>
             <Button className="rounded-full bg-emerald-700 text-white hover:bg-emerald-800" onClick={() => void share()}><Share2 className="mr-2 h-4 w-4" />Share</Button>
           </div>
         </div>
@@ -120,6 +129,7 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
             </div>
           </div>
           {profile.bio ? <p className="mt-5 max-w-3xl whitespace-pre-line text-lg leading-8 text-stone-700">{profile.bio}</p> : null}
+          {links.data?.length ? <div className="mt-5"><LinkBlocks links={links.data} trackClicks={!isOwner && profile.is_public} /></div> : null}
           {profile.is_public ? (
             <div className="mt-5">
               <CheerButton profileId={profile.id} type="profile" count={cheerCount(cheers.data, "profile")} readOnly={isOwner} label={`Cheer ${firstName} on`} size="md" />
@@ -151,10 +161,9 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
               {isOwner ? <Button asChild className="mt-4 rounded-full bg-emerald-700 text-white hover:bg-emerald-800"><Link to="/dashboard#activities">Pick runs to feature</Link></Button> : null}
             </div>
           )}
-          {anyFromStrava ? <p className="mt-4 text-xs font-semibold text-[#FC5200]">Some runs shared from Strava by {firstName}</p> : null}
         </section>
 
-        <MilestoneTimeline milestones={milestones.data ?? []} firstName={firstName} profileId={profile.id} cheers={profile.is_public ? cheers.data : undefined} readOnly={isOwner} />
+        <MilestoneTimeline milestones={publicMilestones} firstName={firstName} profileId={profile.id} cheers={profile.is_public ? cheers.data : undefined} readOnly={isOwner} />
 
         <RaceResults races={publicRaces.races} goals={publicRaces.goals} username={profile.username} firstName={firstName} />
 

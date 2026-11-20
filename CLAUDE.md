@@ -38,6 +38,20 @@ called RunStory (`DabbleJ/runstory`); that repo is retired, so don't push there.
   `visibleToPublic()` so owners preview what visitors see.
 - Never prefill public race results from `strava_activities`; results are typed by the runner.
 
+## Publishing rules for Strava-adjacent features
+- Featured runs and milestones are never prefilled from Strava. The dashboard shows the runner's Strava
+  run or suggestion as a private `PrivateReference` beside an empty form; the runner types what's
+  published. `matchFeatured()` detects already-featured runs by date + distance (no Strava IDs stored).
+- Legacy Strava-prefilled rows have `needs_review = true` and are hidden from visitors by RLS until
+  the runner saves them. Milestone suggestion keys are opaque hashes (`opaqueKey()` in `lib/hash.ts`,
+  same formula as migration `20261128000000_strava_safe_publishing.sql`).
+
+## Link blocks and QR
+- `profile_links` + `link_clicks` (migration `20261129000000_profile_links.sql`), counted by the
+  `track-link-click` edge function (verify_jwt off, no IPs stored). UI: `LinkBlocks.tsx` (public),
+  `LinkDialog.tsx` + "Links" section on the dashboard.
+- QR codes: dependency-free encoder in `src/lib/qr.ts` (byte mode, level M, v1–10); `QrCodeDialog.tsx`.
+
 ## Strava API Policy constraints (don't break these)
 - Strava data may be shown **only to the athlete who owns it**. Public profile pages (`/:username`,
   `RunnerProfile.tsx`) must not read Strava data, including derived stats like streaks and totals.
