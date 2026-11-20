@@ -21,3 +21,7 @@ verify_jwt = true
 
 [functions.delete-account]
 verify_jwt = true
+
+# Public profile pages report views and cheers without a Supabase login token.
+[functions.engage]
+verify_jwt = false

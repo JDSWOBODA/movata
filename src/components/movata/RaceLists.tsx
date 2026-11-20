@@ -1,5 +1,8 @@
 import { Bookmark, CalendarDays, Check, ExternalLink, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { cheerCount, countdownLabel, daysUntil } from "@/lib/engagement";
+import { CheerButton } from "./CheerButton";
 import { publicImageUrl } from "@/lib/images";
 import { formatRaceDate, groupRaces, type RaceRow } from "@/lib/races";
 
@@ -16,9 +19,19 @@ const RacePhoto = ({ path }: { path: string | null }) => {
 };
 
 /** Public "What's next" block: registered races and the bucket list (with races already checked off). */
-export const RaceLists = ({ races, firstName }: { races: RaceRow[]; firstName: string }) => {
+interface RaceListsProps {
+  races: RaceRow[];
+  firstName: string;
+  profileId: string;
+  /** Public cheer totals; omitted for private profiles (no cheering). */
+  cheers?: Map<string, number>;
+  readOnly?: boolean;
+}
+
+export const RaceLists = ({ races, firstName, profileId, cheers, readOnly }: RaceListsProps) => {
   const { upcoming, bucketList, done } = groupRaces(races);
   if (!upcoming.length && !bucketList.length && !done.length) return null;
+  const dreamTotal = bucketList.length + done.length;
 
   return (
     <section>
@@ -37,12 +50,25 @@ export const RaceLists = ({ races, firstName }: { races: RaceRow[]; firstName: s
               <article key={race.id} className="overflow-hidden rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm">
                 <RacePhoto path={race.photo_path} />
                 <div className="flex items-start justify-between gap-3">
-                  <div><h4 className="font-semibold">{race.name}</h4><p className="mt-1 text-sm font-medium text-emerald-800">{formatRaceDate(race.race_date)}</p></div>
+                  <div>
+                    <h4 className="font-semibold">{race.name}</h4>
+                    <p className="mt-1 text-sm font-medium text-emerald-800">{formatRaceDate(race.race_date)}</p>
+                    {race.race_date ? (
+                      <p className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${daysUntil(race.race_date) <= 7 ? "bg-amber-100 text-amber-900" : "bg-emerald-50 text-emerald-800"}`}>
+                        {countdownLabel(daysUntil(race.race_date))}
+                      </p>
+                    ) : null}
+                  </div>
                   {race.distance_label ? <Badge className="shrink-0 rounded-full bg-emerald-700 text-white hover:bg-emerald-700">{race.distance_label}</Badge> : null}
                 </div>
                 {race.location ? <p className="mt-3 flex items-center gap-2 text-sm text-stone-500"><MapPin className="h-4 w-4 text-emerald-700" />{race.location}</p> : null}
                 {race.note ? <p className="mt-2 text-xs font-medium uppercase tracking-[0.12em] text-stone-500">{race.note}</p> : null}
                 <RaceLink url={race.url} />
+                {cheers ? (
+                  <div className="mt-3">
+                    <CheerButton profileId={profileId} type="race" targetId={race.id} count={cheerCount(cheers, "race", race.id)} readOnly={readOnly} label="Good luck" />
+                  </div>
+                ) : null}
               </article>
             )) : <p className="rounded-2xl bg-white/70 p-4 text-sm text-stone-500">No races on the calendar right now.</p>}
           </div>
@@ -53,6 +79,12 @@ export const RaceLists = ({ races, firstName }: { races: RaceRow[]; firstName: s
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-600 text-white"><Bookmark className="h-5 w-5" /></span>
             <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">Bucket list</p><h3 className="text-2xl font-semibold tracking-tight">Dreaming big</h3></div>
           </div>
+          {dreamTotal ? (
+            <div className="mt-4">
+              <p className="text-sm font-medium text-amber-900">{done.length} of {dreamTotal} checked off</p>
+              <Progress value={(done.length / dreamTotal) * 100} className="mt-2 h-2 bg-amber-100 [&>div]:bg-amber-600" />
+            </div>
+          ) : null}
           <div className="mt-5 space-y-3">
             {bucketList.map((race) => (
               <article key={race.id} className="overflow-hidden rounded-2xl border border-amber-100 bg-white p-4 shadow-sm">

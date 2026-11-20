@@ -16,6 +16,8 @@ import { ProfileEditor } from "@/components/movata/ProfileEditor";
 import { FeatureRunDialog } from "@/components/movata/FeatureRunDialog";
 import { ConfirmDialog } from "@/components/movata/ConfirmDialog";
 import { DeleteAccountDialog } from "@/components/movata/DeleteAccountDialog";
+import { EngagementCard } from "@/components/movata/EngagementCard";
+import { countdownLabel, daysUntil } from "@/lib/engagement";
 import { supabase } from "@/integrations/supabase/client";
 import { RaceDialog } from "@/components/movata/RaceDialog";
 import { MarkRaceDoneDialog } from "@/components/movata/MarkRaceDoneDialog";
@@ -320,6 +322,8 @@ const Dashboard = () => {
             </div>
             {strava.connection?.sync_error ? <p role="alert" className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">{strava.connection.sync_error}</p> : null}
 
+            {own.profile && user ? <EngagementCard userId={user.id} isPublic={own.profile.is_public} publicPath={publicPath} /> : null}
+
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <StatCard label="Current streak" value={streak.currentStreakDays} detail="days" tone="emerald" />
               <StatCard label="Featured runs" value={own.featuredRuns.length} detail={own.profile ? "on your public page" : "create a profile first"} />
@@ -447,6 +451,16 @@ const Dashboard = () => {
               </div>
             </SectionTitle>
 
+            {races.upcoming.filter((race) => race.race_date && daysUntil(race.race_date) <= 7).map((race) => (
+              <div key={race.id} className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <span aria-hidden="true" className="text-xl">🏁</span>
+                <p className="min-w-0 flex-1 text-amber-950">
+                  <span className="font-semibold">{countdownLabel(daysUntil(race.race_date!))}: {race.name}</span>
+                  <span className="block text-sm text-amber-900">Good luck! Share your page so friends can cheer you on.</span>
+                </p>
+              </div>
+            ))}
+
             {races.awaitingResult.map((race) => (
               <div key={race.id} className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
                 <Flag className="h-5 w-5 text-emerald-700" />
@@ -469,6 +483,7 @@ const Dashboard = () => {
                             <div className="min-w-0">
                               <p className="font-medium">{race.name}</p>
                               <p className="text-sm text-stone-500">{[formatRaceDate(race.race_date), race.distance_label, race.location].filter(Boolean).join(" · ")}</p>
+                              {race.race_date ? <p className="mt-1 text-xs font-semibold text-emerald-800">{countdownLabel(daysUntil(race.race_date))}</p> : null}
                             </div>
                             <Button size="sm" variant="ghost" className="shrink-0 rounded-full" onClick={() => openEditRace(race)}><Pencil className="h-3.5 w-3.5" /><span className="sr-only">Edit</span></Button>
                           </div>

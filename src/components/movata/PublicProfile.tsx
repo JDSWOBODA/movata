@@ -13,6 +13,8 @@ import { publicImageUrl } from "@/lib/images";
 import { fetchRaces } from "@/lib/races";
 import { RaceLists } from "@/components/movata/RaceLists";
 import { GearCorner } from "@/components/movata/GearCorner";
+import { CheerButton } from "@/components/movata/CheerButton";
+import { cheerCount, fetchCheerCounts, trackProfileView } from "@/lib/engagement";
 import { fetchGear } from "@/lib/gear";
 
 const setMeta = (property: string, content: string) => {
@@ -27,14 +29,20 @@ const setMeta = (property: string, content: string) => {
 
 /** A real runner's public page: profile details plus the runs they chose to feature. */
 export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
-  const { user } = useSession();
+  const { user, loading: sessionLoading } = useSession();
   const isOwner = user?.id === profile.id;
   const name = profile.display_name || `@${profile.username}`;
   const firstName = name.split(" ")[0];
   const featured = useQuery({ queryKey: ["public-featured", profile.id], queryFn: () => fetchFeaturedRuns(profile.id) });
   const races = useQuery({ queryKey: ["public-races", profile.id], queryFn: () => fetchRaces(profile.id) });
   const gear = useQuery({ queryKey: ["public-gear", profile.id], queryFn: () => fetchGear(profile.id) });
+  const cheers = useQuery({ queryKey: ["public-cheers", profile.id], queryFn: () => fetchCheerCounts(profile.id) });
   const runs = (featured.data ?? []).map(featuredRunToActivity);
+
+  // Count the visit once the session is known, so owners never count their own views.
+  useEffect(() => {
+    if (!sessionLoading && !isOwner && profile.is_public) trackProfileView(profile.id);
+  }, [sessionLoading, isOwner, profile.id, profile.is_public]);
   const anyFromStrava = runs.some((run) => run.provider === "strava");
 
   useEffect(() => {
@@ -105,6 +113,11 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
             </div>
           </div>
           {profile.bio ? <p className="mt-5 max-w-3xl whitespace-pre-line text-lg leading-8 text-stone-700">{profile.bio}</p> : null}
+          {profile.is_public ? (
+            <div className="mt-5">
+              <CheerButton profileId={profile.id} type="profile" count={cheerCount(cheers.data, "profile")} readOnly={isOwner} label={`Cheer ${firstName} on`} size="md" />
+            </div>
+          ) : null}
           </div>
         </section>
 
@@ -117,7 +130,12 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
             <p className="flex items-center gap-2 text-stone-500"><LoaderCircle className="h-4 w-4 animate-spin" />Loading runs…</p>
           ) : runs.length ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {runs.map((run) => <div key={run.id} id={`run-${run.id}`} className="scroll-mt-6"><RunCard activity={run} unit={profile.preferred_unit} compact showPhoto /></div>)}
+              {runs.map((run) => (
+                <div key={run.id} id={`run-${run.id}`} className="scroll-mt-6 space-y-2">
+                  <RunCard activity={run} unit={profile.preferred_unit} compact showPhoto />
+                  {profile.is_public ? <CheerButton profileId={profile.id} type="featured_run" targetId={run.id} count={cheerCount(cheers.data, "featured_run", run.id)} readOnly={isOwner} /> : null}
+                </div>
+              ))}
             </div>
           ) : (
             <div className="rounded-[1.5rem] border border-dashed border-stone-300 bg-white p-8 text-center text-stone-500">
@@ -129,7 +147,7 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
           {anyFromStrava ? <p className="mt-4 text-xs font-semibold text-[#FC5200]">Some runs shared from Strava by {firstName}</p> : null}
         </section>
 
-        <RaceLists races={races.data ?? []} firstName={firstName} />
+        <RaceLists races={races.data ?? []} firstName={firstName} profileId={profile.id} cheers={profile.is_public ? cheers.data : undefined} readOnly={isOwner} />
 
         <GearCorner items={gear.data ?? []} firstName={firstName} trackClicks={!isOwner && profile.is_public} />
 

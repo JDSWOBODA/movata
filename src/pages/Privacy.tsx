@@ -105,6 +105,7 @@ const Privacy = () => {
               ["Strava connection", "Strava athlete ID, access and refresh tokens (encrypted), connection status", "Strava, when you connect"],
               ["Strava activities", "Run name, date, distance, time, pace, elevation, location city, route summary, heart rate, gear, and fastest-mile efforts", "Strava, when you sync"],
               ["Gear link clicks", "Which public gear link was clicked and when, plus a one-way code that lets us count each visitor once per day. We do not store the visitor's IP address or account", "Visitors' browsers"],
+              ["Profile views and cheers", "That a public page was viewed or cheered (and which run or race), when, and the same kind of one-way daily code. No IP address or account is stored. When you cheer, your browser remembers it for the day so the button shows you already cheered", "Visitors' browsers"],
               ["Billing (when enabled)", "Stripe customer and subscription IDs and status. Card details go directly to Stripe; we never see or store them", "Stripe"],
               ["Technical logs", "IP address, browser/user agent, pages and API requests, errors, kept in our hosting providers' logs for security and troubleshooting", "Your device"],
             ]}
@@ -118,7 +119,7 @@ const Privacy = () => {
             rows={[
               ["Create and run your account and public page", "Account, profile, content", "Performing our contract with you (Art. 6(1)(b))"],
               ["Sync and show your Strava runs, streak and records to you; suggest runs to feature", "Strava connection and activities", "Your consent (Art. 6(1)(a)); explicit consent for heart rate (Art. 9(2)(a)). Withdraw it any time by disconnecting"],
-              ["Show runners how often visitors click their gear links", "Gear link clicks", "Our legitimate interest in giving runners useful, privacy-friendly statistics (Art. 6(1)(f))"],
+              ["Show runners how often visitors click their gear links, view their page and cheer", "Gear link clicks, profile views, cheers", "Our legitimate interest in giving runners useful, privacy-friendly statistics (Art. 6(1)(f))"],
               ["Fetch a title and image from a link you paste", "The link you submit", "Performing our contract with you"],
               ["Process payments, if you subscribe", "Billing", "Contract; legal obligations such as tax records (Art. 6(1)(c))"],
               ["Keep Movata secure, prevent abuse, fix bugs", "Technical logs, account", "Legitimate interests in security and reliability"],
@@ -129,8 +130,8 @@ const Privacy = () => {
         </Section>
 
         <Section id="public" title="5. What is public">
-          <p>When your profile is set to <strong>public</strong>, anyone can see: your username, display name, bio, location, “running since” year, profile and cover images, featured runs, races, and Gear Corner (including any disclosures). Turn your profile to private at any time in the Profile Editor to hide all of it.</p>
-          <p><strong>Never public:</strong> your email address, Strava activity history, streak and records, route maps, start times, heart rate, and gear click statistics.</p>
+          <p>When your profile is set to <strong>public</strong>, anyone can see: your username, display name, bio, location, “running since” year, profile and cover images, featured runs, races, Gear Corner (including any disclosures), and the total number of cheers. Turn your profile to private at any time in the Profile Editor to hide all of it.</p>
+          <p><strong>Never public:</strong> your email address, Strava activity history, streak and records, route maps, start times, heart rate, page views and gear click statistics.</p>
         </Section>
 
         <Section id="strava" title="6. Strava data">
@@ -170,6 +171,7 @@ const Privacy = () => {
               ["Strava activities", "At most 7 days; deleted immediately when you disconnect or delete your account"],
               ["Replaced or removed photos", "Deleted when you save the change"],
               ["Gear link clicks", "While the gear item exists; deleted with the item or your account"],
+              ["Profile views and cheers", "While your account exists; deleted with your account"],
               ["Billing records", "As long as tax and accounting laws require"],
               ["Technical logs", "Per our hosting providers' log retention, typically days to weeks"],
               ["Backups", "Deleted data may remain in our database provider's encrypted backups for a limited period, then is permanently overwritten"],
@@ -193,7 +195,7 @@ const Privacy = () => {
         </Section>
 
         <Section id="cookies" title="13. Cookies and local storage">
-          <p>Movata stores your sign-in session in your browser's local storage so you stay signed in. This is <strong>strictly necessary</strong> to run the service. We do not use advertising or analytics cookies or third-party trackers. If we ever add non-essential tracking, we will ask for your consent first.</p>
+          <p>Movata stores your sign-in session in your browser's local storage so you stay signed in. When you tap Cheer on a public page, it also remembers that for the rest of the day so the button shows you already cheered. Both are <strong>strictly necessary</strong> for features you use. We do not use advertising or analytics cookies or third-party trackers. If we ever add non-essential tracking, we will ask for your consent first.</p>
         </Section>
 
         <Section id="links" title="14. Gear links and other websites">
