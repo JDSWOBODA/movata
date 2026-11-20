@@ -73,8 +73,12 @@ export const ShareCardDialog = ({ spec, onClose }: { spec: CardSpec | null; onCl
           <ToggleGroupItem value="square" className="rounded-full border border-stone-200 px-4 data-[state=on]:border-emerald-700 data-[state=on]:bg-emerald-50">Square</ToggleGroupItem>
           <ToggleGroupItem value="story" className="rounded-full border border-stone-200 px-4 data-[state=on]:border-emerald-700 data-[state=on]:bg-emerald-50">Story</ToggleGroupItem>
         </ToggleGroup>
-        <div className={`mx-auto overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 ${format === "story" ? "aspect-[9/16] w-56" : "aspect-square w-full"}`}>
-          {preview ? <img src={preview} alt="Share card preview" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center"><LoaderCircle className="h-6 w-6 animate-spin text-emerald-700" /></div>}
+        <div className="flex min-h-48 shrink-0 justify-center">
+          {preview ? (
+            <img src={preview} alt="Share card preview" className="h-auto max-h-[52vh] w-auto max-w-full rounded-2xl border border-stone-200" />
+          ) : (
+            <div className="flex h-48 w-full items-center justify-center rounded-2xl bg-stone-100"><LoaderCircle className="h-6 w-6 animate-spin text-emerald-700" /></div>
+          )}
         </div>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button type="button" variant="outline" className="rounded-full" disabled={!preview} onClick={() => void download()}><Download className="mr-2 h-4 w-4" />Download</Button>
