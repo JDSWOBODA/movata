@@ -4,6 +4,19 @@ const MS_PER_DAY = 86_400_000;
 
 const toDateKey = (date: Date) => date.toISOString().slice(0, 10);
 
+/**
+ * Today's date (YYYY-MM-DD) in the runner's time zone. Using UTC here broke streaks every evening
+ * in the Americas: after ~4–8 pm "today" became tomorrow, so yesterday's run no longer counted.
+ */
+const localTodayKey = (timeZone: string) => {
+  try {
+    return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  } catch {
+    const now = new Date();
+    return toDateKey(new Date(now.getTime() - now.getTimezoneOffset() * 60_000));
+  }
+};
+
 const addDays = (dateKey: string, amount: number) => {
   const date = new Date(`${dateKey}T12:00:00Z`);
   date.setUTCDate(date.getUTCDate() + amount);
@@ -24,7 +37,7 @@ export const isQualifyingRun = (
 export const calculateStreakSummary = (
   activities: NormalizedActivity[],
   settings: StreakSettings,
-  todayKey = toDateKey(new Date()),
+  todayKey = localTodayKey(settings.homeTimezone),
 ): StreakSummary => {
   const qualifying = activities.filter((activity) => isQualifyingRun(activity, settings));
   const days = new Map<string, NormalizedActivity[]>();
