@@ -43,13 +43,13 @@ const steps = [
   },
   {
     number: "02",
-    title: "Connect Strava",
-    copy: "Bring in your activity history securely, or start with a free CSV import.",
+    title: "Add your races",
+    copy: "Log results in seconds: finish time, goal, how it went. Your PRs update themselves.",
   },
   {
     number: "03",
-    title: "Choose what matters",
-    copy: "Spotlight meaningful completed activities and add the races still on your Bucket List.",
+    title: "Share one link",
+    copy: "Put your page in your bio: race history, PRs, what's next and your bucket list, all public only if you choose.",
   },
 ];
 
@@ -69,7 +69,7 @@ const Index = () => (
             Your favorite runs. Your future goals. One profile.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-600 sm:text-xl">
-            Create a free Movata profile, connect Strava, and turn the activities you are proud of—and the races you dream about—into a page worth sharing.
+            Create a free Movata profile and turn your race results, PRs and the races you dream about into a page worth sharing.
           </p>
           <Button asChild size="lg" className="mt-8 w-full rounded-full bg-emerald-700 px-7 text-white shadow-sm hover:bg-emerald-800 sm:w-auto">
             <Link to="/onboarding">Create your free profile <ArrowRight className="ml-2 h-4 w-4" /></Link>
@@ -77,7 +77,7 @@ const Index = () => (
           <div className="mt-6 flex flex-col gap-2 text-sm font-medium text-stone-600 sm:flex-row sm:flex-wrap sm:gap-x-5">
             <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-700" /> Free account</span>
             <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-700" /> You control what is public</span>
-            <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-700" /> Strava or CSV import</span>
+            <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-700" /> Automatic PRs</span>
           </div>
         </div>
         <HeroPreview />
@@ -88,7 +88,7 @@ const Index = () => (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">How it works</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl">From Strava history to a story that feels like yours.</h2>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl">Your races, your PRs, your story.</h2>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {steps.map((step) => (
@@ -128,20 +128,20 @@ const Index = () => (
     <section id="integrations" className="border-y border-stone-200 bg-white py-12">
       <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[1fr_1.1fr] lg:items-center lg:px-8">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">Bring your activities with you</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-stone-950">Start with Strava. Keep control of your data.</h2>
-          <p className="mt-3 max-w-xl leading-7 text-stone-600">Create your free account first, then choose direct Strava sync or import a CSV. Nothing is published until you choose it.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">Your data, your call</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-stone-950">Public where you want it. Private everywhere else.</h2>
+          <p className="mt-3 max-w-xl leading-7 text-stone-600">Your public page shows what you enter and choose to share. Connect Strava for a private training dashboard that only you can see.</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5">
             <Link2 className="h-6 w-6 text-emerald-700" />
             <h3 className="mt-4 text-xl font-semibold text-stone-950">Connect Strava</h3>
-            <p className="mt-2 text-sm leading-6 text-stone-600">Secure direct sync is available as an optional $3/year add-on.</p>
+            <p className="mt-2 text-sm leading-6 text-stone-600">See your streaks and recent runs on a private dashboard. Your Strava activities stay there; you choose what to feature.</p>
           </div>
           <div className="rounded-[1.5rem] border border-stone-200 bg-[#fbfaf6] p-5">
             <Upload className="h-6 w-6 text-emerald-700" />
-            <h3 className="mt-4 text-xl font-semibold text-stone-950">Import a CSV</h3>
-            <p className="mt-2 text-sm leading-6 text-stone-600">A free fallback for Strava exports and other activity tools.</p>
+            <h3 className="mt-4 text-xl font-semibold text-stone-950">Add results your way</h3>
+            <p className="mt-2 text-sm leading-6 text-stone-600">Type in a race result in about 30 seconds, including races from years ago.</p>
           </div>
         </div>
       </div>

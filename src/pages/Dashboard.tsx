@@ -33,7 +33,9 @@ import { useGear } from "@/hooks/use-gear";
 import { blankGear, fetchGearClickStats, type GearInput, type GearRow } from "@/lib/gear";
 import { useQuery } from "@tanstack/react-query";
 import { useRaces } from "@/hooks/use-races";
-import { blankRace, formatRaceDate, groupRaces, type RaceInput, type RaceRow } from "@/lib/races";
+import { blankRace, formatRaceDate, groupRaces, raceToInput, type RaceGoalInput, type RaceInput, type RaceRow } from "@/lib/races";
+import { distanceLabel, formatRaceTime, personalBests, prAtTheTime, resultHeadline } from "@/lib/race-results";
+import type { SavedRace } from "@/hooks/use-races";
 import { useSession } from "@/contexts/SessionContext";
 import { demoActivities, demoStreak, demoTotals, streakSettings } from "@/lib/sample-data";
 import { useStrava } from "@/hooks/use-strava";
@@ -111,7 +113,9 @@ const Dashboard = () => {
   const [milestoneDialog, setMilestoneDialog] = useState<{ mode: "add" | "edit"; draft: MilestoneInput; editingId?: string } | null>(null);
   const [shareSpec, setShareSpec] = useState<CardSpec | null>(null);
   const races = useMemo(() => groupRaces(raceList.races), [raceList.races]);
-  const [raceDialog, setRaceDialog] = useState<{ mode: "add" | "edit"; draft: RaceInput; editingId?: string } | null>(null);
+  const prIds = useMemo(() => prAtTheTime(raceList.races), [raceList.races]);
+  const personalBestIds = useMemo(() => new Set(personalBests(raceList.races).map((pb) => pb.race.id)), [raceList.races]);
+  const [raceDialog, setRaceDialog] = useState<{ mode: "add" | "edit"; draft: RaceInput; goal?: RaceGoalInput | null; editingId?: string } | null>(null);
   const [finishing, setFinishing] = useState<RaceRow | null>(null);
   const gearList = useGear(Boolean(own.profile));
   const gearStats = useQuery({ queryKey: ["gear-click-stats", user?.id], queryFn: fetchGearClickStats, enabled: Boolean(own.profile) && gearList.gear.length > 0 });
@@ -238,20 +242,48 @@ const Dashboard = () => {
   const openAddRace = (status: RaceInput["status"]) => {
     if (requireProfile()) setRaceDialog({ mode: "add", draft: blankRace(status) });
   };
-  const openEditRace = (race: RaceRow) => {
-    const { name, race_date, location, distance_label, url, note, status, photo_path } = race;
-    setRaceDialog({ mode: "edit", draft: { name, race_date, location, distance_label, url, note, status, photo_path }, editingId: race.id });
+  const goalFor = (raceId: string): RaceGoalInput | null => {
+    const goal = raceList.goals.get(raceId);
+    return goal ? { goal_seconds: goal.goal_seconds, goal_public: goal.is_public } : null;
   };
-  const submitRace = (input: RaceInput) => {
+  const openEditRace = (race: RaceRow, asFinished = false) => {
+    const draft = raceToInput(race);
+    setRaceDialog({ mode: "edit", draft: asFinished ? { ...draft, status: "done" } : draft, goal: goalFor(race.id), editingId: race.id });
+  };
+  /** Confirm a saved race; a new PR gets a celebration and a one-tap share card. */
+  const confirmRace = (saved: SavedRace | null, fallback: string) => {
+    if (saved?.newPr && own.profile) {
+      const profile = own.profile;
+      toast.success(`New ${distanceLabel(saved.race.distance_key)} PR: ${formatRaceTime(saved.race.finish_seconds)} 🎉`, {
+        action: { label: "Share card", onClick: () => setShareSpec(raceDoneCard(saved.race, profile, true)) },
+        duration: 8000,
+      });
+    } else {
+      toast.success(fallback);
+    }
+  };
+  const submitRace = (input: RaceInput, goal: RaceGoalInput) => {
     if (!raceDialog) return;
+    const finished = input.status === "done";
     if (raceDialog.mode === "edit" && raceDialog.editingId) {
-      const leavingDone = input.status !== "done";
+      const before = raceList.races.find((race) => race.id === raceDialog.editingId);
+      const changes = finished
+        ? { ...input, completed_on: before?.completed_on ?? input.race_date }
+        : { ...input, featured_run_id: null, completed_on: null };
       raceList.edit.mutate(
-        { id: raceDialog.editingId, input: leavingDone ? { ...input, featured_run_id: null, completed_on: null } : input },
-        { onSuccess: () => { setRaceDialog(null); toast.success("Race saved."); } },
+        { id: raceDialog.editingId, input: changes, goal },
+        { onSuccess: (saved) => { setRaceDialog(null); confirmRace(saved, finished && before?.status !== "done" ? "Race checked off." : "Race saved."); } },
       );
     } else {
-      raceList.add.mutate(input, { onSuccess: () => setRaceDialog(null) });
+      raceList.add.mutate(
+        { input: finished ? { ...input, completed_on: input.race_date } : input, goal },
+        {
+          onSuccess: (saved) => {
+            setRaceDialog(null);
+            confirmRace(saved, input.status === "registered" ? "Race added to your calendar." : finished ? "Result added to your race history." : "Added to your bucket list.");
+          },
+        },
+      );
     }
   };
 
@@ -279,13 +311,10 @@ const Dashboard = () => {
       draft: { ...draftFromActivity(run), title: race.name, highlight_type: "best_race", note: race.note, photo_path: null },
     });
   };
+  /** From "How did it go?": type the result onto the race itself (finish time, report, tags). */
   const enterRaceManually = (race: RaceRow) => {
     setFinishing(null);
-    setDialog({
-      mode: "add",
-      completesRaceId: race.id,
-      draft: { ...blankDraft(), title: race.name, run_date: race.race_date ?? blankDraft().run_date, highlight_type: "best_race", note: race.note },
-    });
+    openEditRace(race, true);
   };
 
   const publicPath = own.profile?.is_public ? `/${own.profile.username}` : null;
@@ -524,7 +553,8 @@ const Dashboard = () => {
           <section id="races" className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
             <SectionTitle eyebrow="Public page" title="Races" icon={Flag}>
               <div className="flex flex-wrap gap-2">
-                <Button size="sm" className="rounded-full bg-emerald-700 text-white hover:bg-emerald-800" onClick={() => openAddRace("registered")}><CalendarPlus className="mr-1.5 h-4 w-4" />Registered race</Button>
+                <Button size="sm" className="rounded-full bg-emerald-700 text-white hover:bg-emerald-800" onClick={() => openAddRace("done")}><Medal className="mr-1.5 h-4 w-4" />Past result</Button>
+                <Button size="sm" variant="outline" className="rounded-full" onClick={() => openAddRace("registered")}><CalendarPlus className="mr-1.5 h-4 w-4" />Registered race</Button>
                 <Button size="sm" variant="outline" className="rounded-full" onClick={() => openAddRace("bucket_list")}><Bookmark className="mr-1.5 h-4 w-4" />Bucket list</Button>
               </div>
             </SectionTitle>
@@ -598,13 +628,13 @@ const Dashboard = () => {
 
             {races.done.length ? (
               <div className="mt-5 border-t border-stone-200 pt-4">
-                <h3 className="mb-2 text-sm font-semibold text-stone-700">Checked off</h3>
+                <h3 className="mb-2 text-sm font-semibold text-stone-700">Race history</h3>
                 <ul className="space-y-1.5">
                   {races.done.map((race) => (
                     <li key={race.id} className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-emerald-700" />
-                      <span className="min-w-0 flex-1 truncate">{race.name}{race.completed_on || race.race_date ? <span className="text-stone-500"> · {formatRaceDate(race.completed_on ?? race.race_date)}</span> : null}{race.featured_run_id ? <span className="text-emerald-800"> · featured</span> : null}</span>
-                      {own.profile ? <Button size="sm" variant="ghost" className="h-7 rounded-full px-2" onClick={() => setShareSpec(raceDoneCard(race, own.profile!))}><Share2 className="h-3.5 w-3.5" /><span className="sr-only">Share card</span></Button> : null}
+                      <span className="min-w-0 flex-1 truncate">{race.name}{race.finish_seconds || race.dnf ? <span className="font-mono font-semibold text-stone-800"> · {resultHeadline(race)}</span> : null}{race.completed_on || race.race_date ? <span className="text-stone-500"> · {formatRaceDate(race.completed_on ?? race.race_date)}</span> : null}{race.featured_run_id ? <span className="text-emerald-800"> · featured</span> : null}{!race.is_public ? <span className="text-stone-400"> · private</span> : null}</span>
+                      {own.profile ? <Button size="sm" variant="ghost" className="h-7 rounded-full px-2" onClick={() => setShareSpec(raceDoneCard(race, own.profile!, prIds.has(race.id) && personalBestIds.has(race.id)))}><Share2 className="h-3.5 w-3.5" /><span className="sr-only">Share card</span></Button> : null}
                       <Button size="sm" variant="ghost" className="h-7 rounded-full px-2" onClick={() => openEditRace(race)}><Pencil className="h-3.5 w-3.5" /><span className="sr-only">Edit</span></Button>
                     </li>
                   ))}
@@ -776,6 +806,7 @@ const Dashboard = () => {
         open={Boolean(raceDialog)}
         onOpenChange={(open) => { if (!open) setRaceDialog(null); }}
         draft={raceDialog?.draft ?? null}
+        goal={raceDialog?.goal ?? null}
         mode={raceDialog?.mode ?? "add"}
         username={own.profile?.username ?? ""}
         submitting={raceList.add.isPending || raceList.edit.isPending}

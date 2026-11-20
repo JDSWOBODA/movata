@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import RunnerProfile from "./pages/RunnerProfile";
+import RaceResult from "./pages/RaceResult";
 import Privacy from "./pages/Privacy";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/:username" element={<RunnerProfile />} />
+            <Route path="/:username/races/:raceId" element={<RaceResult />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </SessionProvider>

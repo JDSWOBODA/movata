@@ -5,6 +5,7 @@ import type { RaceRow } from "./races";
 import { formatDate, formatDistance, formatDuration } from "./format";
 import { publicImageUrl } from "./images";
 import { HIGHLIGHT_LABELS } from "./profile";
+import { distanceLabel, formatRaceTime } from "./race-results";
 
 const who = (profile: ProfileRow) => ({ name: profile.display_name || `@${profile.username}`, username: profile.username });
 
@@ -37,12 +38,13 @@ export const milestoneCard = (milestone: MilestoneRow, profile: ProfileRow): Car
   };
 };
 
-export const raceDoneCard = (race: RaceRow, profile: ProfileRow): CardSpec => ({
+/** Race result card. Uses only what the runner entered; pass isPr for the "New PR" eyebrow. */
+export const raceDoneCard = (race: RaceRow, profile: ProfileRow, isPr = false): CardSpec => ({
   ...who(profile),
-  eyebrow: "Checked off ✓",
-  headline: race.distance_label || "Done",
+  eyebrow: isPr ? `New ${distanceLabel(race.distance_key) ?? ""} PR`.replace("  ", " ") : race.dnf ? "Gave it everything" : race.finish_seconds ? "Race result" : "Checked off ✓",
+  headline: race.finish_seconds && !race.dnf ? formatRaceTime(race.finish_seconds) : race.distance_label || distanceLabel(race.distance_key) || "Done",
   title: race.name,
-  subtitle: [race.completed_on || race.race_date ? formatDate((race.completed_on ?? race.race_date)!) : null, race.location || null].filter(Boolean).join(" · "),
+  subtitle: [race.finish_seconds ? distanceLabel(race.distance_key) || race.distance_label || null : null, race.completed_on || race.race_date ? formatDate((race.completed_on ?? race.race_date)!) : null, race.location || null].filter(Boolean).join(" · "),
   photoUrl: publicImageUrl(race.photo_path),
   slug: `race-${race.id.slice(0, 8)}`,
 });

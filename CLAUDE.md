@@ -27,6 +27,17 @@ called RunStory (`DabbleJ/runstory`); that repo is retired, so don't push there.
   `STRAVA_TOKEN_ENCRYPTION_KEY` (never rotate the last one, or stored tokens become unreadable).
 - Setup checklist: `STRAVA_SETUP.md`.
 
+## Race results (running résumé)
+- `race_plans` holds registered, bucket-list and finished ("done") races. Finished races carry the
+  runner-entered result: `finish_seconds`, `distance_key` (standard distances for PRs), `course_type`,
+  `dnf`, `report`, `tags`, and per-race `is_public`. Goals live in `race_goals` (private by default) so
+  RLS can hide them. Migration: `20261127000000_race_results.sql`.
+- Logic in `src/lib/race-results.ts`: PRs per standard distance (road/track only; trail/XC excluded),
+  "PR at the time" markers, results by year, time parsing. Public UI: `RaceResults.tsx` on the profile
+  and `/:username/races/:raceId` (`pages/RaceResult.tsx`). Public views always filter with
+  `visibleToPublic()` so owners preview what visitors see.
+- Never prefill public race results from `strava_activities`; results are typed by the runner.
+
 ## Strava API Policy constraints (don't break these)
 - Strava data may be shown **only to the athlete who owns it**. Public profile pages (`/:username`,
   `RunnerProfile.tsx`) must not read Strava data, including derived stats like streaks and totals.

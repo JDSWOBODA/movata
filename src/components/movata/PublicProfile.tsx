@@ -10,7 +10,8 @@ import { useSession } from "@/contexts/SessionContext";
 import { product } from "@/lib/brand";
 import { featuredRunToActivity, fetchFeaturedRuns, type ProfileRow } from "@/lib/profile";
 import { publicImageUrl } from "@/lib/images";
-import { fetchRaces } from "@/lib/races";
+import { fetchRaceGoals, fetchRaces } from "@/lib/races";
+import { RaceResults, visibleToPublic } from "@/components/movata/RaceResults";
 import { RaceLists } from "@/components/movata/RaceLists";
 import { GearCorner } from "@/components/movata/GearCorner";
 import { CheerButton } from "@/components/movata/CheerButton";
@@ -37,6 +38,9 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
   const firstName = name.split(" ")[0];
   const featured = useQuery({ queryKey: ["public-featured", profile.id], queryFn: () => fetchFeaturedRuns(profile.id) });
   const races = useQuery({ queryKey: ["public-races", profile.id], queryFn: () => fetchRaces(profile.id) });
+  const raceGoals = useQuery({ queryKey: ["public-race-goals", profile.id], queryFn: () => fetchRaceGoals(profile.id) });
+  // Owners preview exactly what visitors get: public races and shared goals only.
+  const publicRaces = visibleToPublic(races.data ?? [], raceGoals.data ?? new Map());
   const gear = useQuery({ queryKey: ["public-gear", profile.id], queryFn: () => fetchGear(profile.id) });
   const milestones = useQuery({ queryKey: ["public-milestones", profile.id], queryFn: () => fetchMilestones(profile.id) });
   const cheers = useQuery({ queryKey: ["public-cheers", profile.id], queryFn: () => fetchCheerCounts(profile.id) });
@@ -152,7 +156,9 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
 
         <MilestoneTimeline milestones={milestones.data ?? []} firstName={firstName} profileId={profile.id} cheers={profile.is_public ? cheers.data : undefined} readOnly={isOwner} />
 
-        <RaceLists races={races.data ?? []} firstName={firstName} profileId={profile.id} cheers={profile.is_public ? cheers.data : undefined} readOnly={isOwner} />
+        <RaceResults races={publicRaces.races} goals={publicRaces.goals} username={profile.username} firstName={firstName} />
+
+        <RaceLists races={publicRaces.races} firstName={firstName} profileId={profile.id} cheers={profile.is_public ? cheers.data : undefined} readOnly={isOwner} />
 
         <GearCorner items={gear.data ?? []} firstName={firstName} trackClicks={!isOwner && profile.is_public} />
 
