@@ -14,6 +14,8 @@ import { fetchRaces } from "@/lib/races";
 import { RaceLists } from "@/components/movata/RaceLists";
 import { GearCorner } from "@/components/movata/GearCorner";
 import { CheerButton } from "@/components/movata/CheerButton";
+import { MilestoneTimeline } from "@/components/movata/MilestoneTimeline";
+import { fetchMilestones } from "@/lib/milestones";
 import { cheerCount, fetchCheerCounts, trackProfileView } from "@/lib/engagement";
 import { fetchGear } from "@/lib/gear";
 
@@ -36,6 +38,7 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
   const featured = useQuery({ queryKey: ["public-featured", profile.id], queryFn: () => fetchFeaturedRuns(profile.id) });
   const races = useQuery({ queryKey: ["public-races", profile.id], queryFn: () => fetchRaces(profile.id) });
   const gear = useQuery({ queryKey: ["public-gear", profile.id], queryFn: () => fetchGear(profile.id) });
+  const milestones = useQuery({ queryKey: ["public-milestones", profile.id], queryFn: () => fetchMilestones(profile.id) });
   const cheers = useQuery({ queryKey: ["public-cheers", profile.id], queryFn: () => fetchCheerCounts(profile.id) });
   const runs = (featured.data ?? []).map(featuredRunToActivity);
 
@@ -146,6 +149,8 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
           )}
           {anyFromStrava ? <p className="mt-4 text-xs font-semibold text-[#FC5200]">Some runs shared from Strava by {firstName}</p> : null}
         </section>
+
+        <MilestoneTimeline milestones={milestones.data ?? []} firstName={firstName} profileId={profile.id} cheers={profile.is_public ? cheers.data : undefined} readOnly={isOwner} />
 
         <RaceLists races={races.data ?? []} firstName={firstName} profileId={profile.id} cheers={profile.is_public ? cheers.data : undefined} readOnly={isOwner} />
 

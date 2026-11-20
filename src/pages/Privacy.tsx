@@ -101,7 +101,7 @@ const Privacy = () => {
             rows={[
               ["Account", "Email address, password (stored only as a secure hash by our authentication provider), sign-in times", "You"],
               ["Profile", "Username, display name, bio, location, “running since” year, units, public/private setting, profile photo and cover image", "You"],
-              ["Content you add", "Featured runs (title, date, distance, time, note, photo), races (name, date, distance, location, link, note, photo), gear (category, brand, product, note, photo, product and video links, affiliate and gifted disclosures)", "You; optionally prefilled from your Strava runs or from a link you paste"],
+              ["Content you add", "Featured runs (title, date, distance, time, note, photo), races (name, date, distance, location, link, note, photo), gear (category, brand, product, note, photo, product and video links, affiliate and gifted disclosures), milestones (title, date, story, photo) and milestone suggestions you dismissed", "You; optionally prefilled from your Strava runs or from a link you paste"],
               ["Strava connection", "Strava athlete ID, access and refresh tokens (encrypted), connection status", "Strava, when you connect"],
               ["Strava activities", "Run name, date, distance, time, pace, elevation, location city, route summary, heart rate, gear, and fastest-mile efforts", "Strava, when you sync"],
               ["Gear link clicks", "Which public gear link was clicked and when, plus a one-way code that lets us count each visitor once per day. We do not store the visitor's IP address or account", "Visitors' browsers"],
@@ -118,7 +118,7 @@ const Privacy = () => {
             head={["Purpose", "Data", "Legal basis (GDPR)"]}
             rows={[
               ["Create and run your account and public page", "Account, profile, content", "Performing our contract with you (Art. 6(1)(b))"],
-              ["Sync and show your Strava runs, streak and records to you; suggest runs to feature", "Strava connection and activities", "Your consent (Art. 6(1)(a)); explicit consent for heart rate (Art. 9(2)(a)). Withdraw it any time by disconnecting"],
+              ["Sync and show your Strava runs, streak and records to you; suggest runs and milestones to feature (only you see suggestions)", "Strava connection and activities", "Your consent (Art. 6(1)(a)); explicit consent for heart rate (Art. 9(2)(a)). Withdraw it any time by disconnecting"],
               ["Show runners how often visitors click their gear links, view their page and cheer", "Gear link clicks, profile views, cheers", "Our legitimate interest in giving runners useful, privacy-friendly statistics (Art. 6(1)(f))"],
               ["Fetch a title and image from a link you paste", "The link you submit", "Performing our contract with you"],
               ["Process payments, if you subscribe", "Billing", "Contract; legal obligations such as tax records (Art. 6(1)(c))"],
@@ -130,7 +130,7 @@ const Privacy = () => {
         </Section>
 
         <Section id="public" title="5. What is public">
-          <p>When your profile is set to <strong>public</strong>, anyone can see: your username, display name, bio, location, “running since” year, profile and cover images, featured runs, races, Gear Corner (including any disclosures), and the total number of cheers. Turn your profile to private at any time in the Profile Editor to hide all of it.</p>
+          <p>When your profile is set to <strong>public</strong>, anyone can see: your username, display name, bio, location, “running since” year, profile and cover images, featured runs, milestones, races, Gear Corner (including any disclosures), and the total number of cheers. Turn your profile to private at any time in the Profile Editor to hide all of it.</p>
           <p><strong>Never public:</strong> your email address, Strava activity history, streak and records, route maps, start times, heart rate, page views and gear click statistics.</p>
         </Section>
 

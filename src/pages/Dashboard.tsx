@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Activity, ArrowDown, ArrowUp, Bookmark, CalendarCheck2, CalendarDays, CalendarPlus, Check, Flag, EyeOff, Flame, Globe2, LoaderCircle, Lock, LogOut, Medal, Pencil,
-  MousePointerClick, Plus, RefreshCw, Route, Settings, ShoppingBag, Sparkles, Star, Trash2, Unplug, UserRound, Zap,
+  MousePointerClick, Plus, RefreshCw, Route, Settings, Share2, ShoppingBag, Sparkles, Star, Trash2, Trophy, Unplug, UserRound, Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -17,6 +17,12 @@ import { FeatureRunDialog } from "@/components/movata/FeatureRunDialog";
 import { ConfirmDialog } from "@/components/movata/ConfirmDialog";
 import { DeleteAccountDialog } from "@/components/movata/DeleteAccountDialog";
 import { EngagementCard } from "@/components/movata/EngagementCard";
+import { MilestoneDialog } from "@/components/movata/MilestoneDialog";
+import { ShareCardDialog } from "@/components/movata/ShareCardDialog";
+import { useMilestones } from "@/hooks/use-milestones";
+import { blankMilestone, suggestMilestones, type MilestoneInput, type MilestoneRow } from "@/lib/milestones";
+import { featuredRunCard, milestoneCard, raceDoneCard } from "@/lib/card-specs";
+import type { CardSpec } from "@/lib/share-card";
 import { countdownLabel, daysUntil } from "@/lib/engagement";
 import { supabase } from "@/integrations/supabase/client";
 import { RaceDialog } from "@/components/movata/RaceDialog";
@@ -44,6 +50,7 @@ const sections = [
   { id: "activities", label: "Activities" },
   { id: "streak", label: "Streak" },
   { id: "highlights", label: "Highlights" },
+  { id: "milestones", label: "Milestones" },
   { id: "races", label: "Races" },
   { id: "gear", label: "Gear Corner" },
   { id: "records", label: "Records" },
@@ -100,6 +107,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [deletingAccount, setDeletingAccount] = useState(false);
   const raceList = useRaces(Boolean(own.profile));
+  const milestoneList = useMilestones(Boolean(own.profile));
+  const [milestoneDialog, setMilestoneDialog] = useState<{ mode: "add" | "edit"; draft: MilestoneInput; editingId?: string } | null>(null);
+  const [shareSpec, setShareSpec] = useState<CardSpec | null>(null);
   const races = useMemo(() => groupRaces(raceList.races), [raceList.races]);
   const [raceDialog, setRaceDialog] = useState<{ mode: "add" | "edit"; draft: RaceInput; editingId?: string } | null>(null);
   const [finishing, setFinishing] = useState<RaceRow | null>(null);
@@ -109,7 +119,7 @@ const Dashboard = () => {
   const [gearDialog, setGearDialog] = useState<{ mode: "add" | "edit"; draft: GearInput; editingId?: string } | null>(null);
   const [activeSection, setActiveSection] = useActiveSection();
   const [visibleRuns, setVisibleRuns] = useState(PAGE_SIZE);
-  const [confirming, setConfirming] = useState<{ kind: "remove"; run: FeaturedRunRow } | { kind: "disconnect" } | { kind: "remove-race"; race: RaceRow } | { kind: "remove-gear"; item: GearRow } | null>(null);
+  const [confirming, setConfirming] = useState<{ kind: "remove"; run: FeaturedRunRow } | { kind: "disconnect" } | { kind: "remove-race"; race: RaceRow } | { kind: "remove-gear"; item: GearRow } | { kind: "remove-milestone"; item: MilestoneRow } | null>(null);
   const [dialog, setDialog] = useState<{ mode: "add" | "edit"; draft: FeaturedRunInput; editingId?: string; completesRaceId?: string } | null>(null);
 
   // Jump to the section in the URL hash once the page has rendered (e.g. /dashboard#profile-editor).
@@ -162,6 +172,25 @@ const Dashboard = () => {
     [sortedRuns, usingStrava, featuredStravaIds, unit],
   );
   const bestMilesChecked = sortedRuns.some((run) => run.bestMileSeconds !== undefined);
+
+  const milestoneIdeas = useMemo(() => {
+    if (!usingStrava) return [];
+    const taken = new Set([...milestoneList.milestones.map((m) => m.key).filter((k): k is string => Boolean(k)), ...milestoneList.dismissed]);
+    return suggestMilestones(sortedRuns, streak, unit, taken);
+    // streak is derived from activities each render; sortedRuns captures the same input
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usingStrava, sortedRuns, unit, milestoneList.milestones, milestoneList.dismissed]);
+
+  const submitMilestone = (input: MilestoneInput) => {
+    if (!milestoneDialog) return;
+    const close = { onSuccess: () => setMilestoneDialog(null) };
+    if (milestoneDialog.mode === "edit" && milestoneDialog.editingId) milestoneList.edit.mutate({ id: milestoneDialog.editingId, input }, close);
+    else milestoneList.add.mutate(input, close);
+  };
+  const openEditMilestone = (milestone: MilestoneRow) => {
+    const { key, kind, title, detail, achieved_on, photo_path } = milestone;
+    setMilestoneDialog({ mode: "edit", draft: { key, kind, title, detail, achieved_on, photo_path }, editingId: milestone.id });
+  };
 
   const requireProfile = () => {
     if (own.profile) return true;
@@ -401,6 +430,7 @@ const Dashboard = () => {
                     <RunCard activity={featuredRunToActivity(run)} unit={unit} compact showPhoto />
                     <div className="flex flex-wrap gap-1.5">
                       <Button size="sm" variant="outline" className="rounded-full" onClick={() => openEdit(run)}><Pencil className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
+                      {own.profile ? <Button size="sm" variant="outline" className="rounded-full" onClick={() => setShareSpec(featuredRunCard(run, own.profile!))}><Share2 className="mr-1.5 h-3.5 w-3.5" />Share card</Button> : null}
                       <Button size="sm" variant="ghost" className="rounded-full" aria-label="Move earlier" disabled={index === 0 || own.move.isPending} onClick={() => own.move.mutate({ index, direction: -1 })}><ArrowUp className="h-4 w-4" /></Button>
                       <Button size="sm" variant="ghost" className="rounded-full" aria-label="Move later" disabled={index === own.featuredRuns.length - 1 || own.move.isPending} onClick={() => own.move.mutate({ index, direction: 1 })}><ArrowDown className="h-4 w-4" /></Button>
                       <Button size="sm" variant="ghost" className="ml-auto rounded-full text-red-700 hover:bg-red-50 hover:text-red-800" disabled={own.unfeature.isPending}
@@ -440,6 +470,54 @@ const Dashboard = () => {
                 ))}
               </div>
             ) : null}
+          </section>
+
+          {/* Milestones */}
+          <section id="milestones" className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
+            <SectionTitle eyebrow="Public page" title="Milestones" icon={Trophy}>
+              <Button size="sm" variant="outline" className="rounded-full" onClick={() => { if (requireProfile()) setMilestoneDialog({ mode: "add", draft: blankMilestone() }); }}><Plus className="mr-1.5 h-4 w-4" />Add milestone</Button>
+            </SectionTitle>
+
+            {own.profile && milestoneIdeas.length ? (
+              <div className="mb-5 space-y-2">
+                <p className="flex items-center gap-2 text-sm font-semibold text-stone-700"><Lock className="h-3.5 w-3.5" />Spotted in your runs (only you see these)</p>
+                {milestoneIdeas.map((idea) => (
+                  <div key={idea.key} className="flex flex-wrap items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3">
+                    <span aria-hidden="true" className="text-xl">🏅</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-stone-900">{idea.title}</p>
+                      <p className="text-sm text-stone-500">{idea.detail}</p>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <Button size="sm" className="rounded-full bg-emerald-700 text-white hover:bg-emerald-800" onClick={() => setMilestoneDialog({ mode: "add", draft: idea })}>Add to page</Button>
+                      <Button size="sm" variant="ghost" className="rounded-full" disabled={milestoneList.dismiss.isPending} onClick={() => milestoneList.dismiss.mutate(idea.key)}>Not now</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {!own.profile ? (
+              <p className="rounded-2xl border border-dashed border-stone-300 p-6 text-center text-stone-600">Create your profile to publish milestones.</p>
+            ) : milestoneList.milestones.length ? (
+              <ul className="space-y-2">
+                {milestoneList.milestones.map((milestone) => (
+                  <li key={milestone.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-stone-200 p-3">
+                    <Trophy className="h-4 w-4 text-emerald-700" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{milestone.title}</p>
+                      <p className="text-sm text-stone-500">{formatDate(milestone.achieved_on)}{milestone.detail ? ` · ${milestone.detail}` : ""}</p>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <Button size="sm" variant="outline" className="rounded-full" onClick={() => setShareSpec(milestoneCard(milestone, own.profile!))}><Share2 className="mr-1.5 h-3.5 w-3.5" />Share card</Button>
+                      <Button size="sm" variant="ghost" className="rounded-full" onClick={() => openEditMilestone(milestone)}><Pencil className="h-3.5 w-3.5" /><span className="sr-only">Edit</span></Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="rounded-2xl bg-stone-50 p-4 text-sm text-stone-500">{usingStrava ? "No milestones on your page yet. Add one from the suggestions above or create your own." : "Add milestones by hand, or connect Strava to get suggestions."}</p>
+            )}
           </section>
 
           {/* Races */}
@@ -526,6 +604,7 @@ const Dashboard = () => {
                     <li key={race.id} className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-emerald-700" />
                       <span className="min-w-0 flex-1 truncate">{race.name}{race.completed_on || race.race_date ? <span className="text-stone-500"> · {formatRaceDate(race.completed_on ?? race.race_date)}</span> : null}{race.featured_run_id ? <span className="text-emerald-800"> · featured</span> : null}</span>
+                      {own.profile ? <Button size="sm" variant="ghost" className="h-7 rounded-full px-2" onClick={() => setShareSpec(raceDoneCard(race, own.profile!))}><Share2 className="h-3.5 w-3.5" /><span className="sr-only">Share card</span></Button> : null}
                       <Button size="sm" variant="ghost" className="h-7 rounded-full px-2" onClick={() => openEditRace(race)}><Pencil className="h-3.5 w-3.5" /><span className="sr-only">Edit</span></Button>
                     </li>
                   ))}
@@ -671,9 +750,11 @@ const Dashboard = () => {
 
       <ConfirmDialog
         open={Boolean(confirming)}
-        title={confirming?.kind === "remove" ? "Remove from your public page?" : confirming?.kind === "remove-race" ? "Remove this race?" : confirming?.kind === "remove-gear" ? "Remove this gear?" : "Disconnect Strava?"}
+        title={confirming?.kind === "remove-milestone" ? "Remove this milestone?" : confirming?.kind === "remove" ? "Remove from your public page?" : confirming?.kind === "remove-race" ? "Remove this race?" : confirming?.kind === "remove-gear" ? "Remove this gear?" : "Disconnect Strava?"}
         description={confirming?.kind === "remove"
           ? `"${confirming.run.title}" will no longer appear on your profile. Your Strava run isn't affected.`
+          : confirming?.kind === "remove-milestone"
+            ? `"${confirming.item.title}" will be removed from your page.`
           : confirming?.kind === "remove-race"
             ? `"${confirming.race.name}" will be removed from your races. A featured run linked to it stays.`
             : confirming?.kind === "remove-gear"
@@ -686,6 +767,7 @@ const Dashboard = () => {
           if (confirming?.kind === "disconnect") strava.disconnect.mutate();
           if (confirming?.kind === "remove-race") { raceList.remove.mutate(confirming.race.id); setRaceDialog(null); }
           if (confirming?.kind === "remove-gear") { gearList.remove.mutate(confirming.item.id); setGearDialog(null); }
+          if (confirming?.kind === "remove-milestone") { milestoneList.remove.mutate(confirming.item.id); setMilestoneDialog(null); }
           setConfirming(null);
         }}
       />
@@ -703,6 +785,22 @@ const Dashboard = () => {
           if (race) setConfirming({ kind: "remove-race", race });
         } : undefined}
       />
+
+      <MilestoneDialog
+        open={Boolean(milestoneDialog)}
+        onOpenChange={(open) => { if (!open) setMilestoneDialog(null); }}
+        draft={milestoneDialog?.draft ?? null}
+        mode={milestoneDialog?.mode ?? "add"}
+        username={own.profile?.username ?? ""}
+        submitting={milestoneList.add.isPending || milestoneList.edit.isPending}
+        onSubmit={submitMilestone}
+        onRemove={milestoneDialog?.editingId ? () => {
+          const item = milestoneList.milestones.find((m) => m.id === milestoneDialog.editingId);
+          if (item) setConfirming({ kind: "remove-milestone", item });
+        } : undefined}
+      />
+
+      <ShareCardDialog spec={shareSpec} onClose={() => setShareSpec(null)} />
 
       <GearDialog
         open={Boolean(gearDialog)}

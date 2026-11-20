@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type CheerTarget = "profile" | "featured_run" | "race";
+export type CheerTarget = "profile" | "featured_run" | "race" | "milestone";
 
 const cheerKey = (type: CheerTarget, id?: string | null) => `${type}:${id ?? ""}`;
 

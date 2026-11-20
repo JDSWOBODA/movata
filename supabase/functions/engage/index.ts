@@ -18,7 +18,7 @@ const corsHeaders = {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const BOT = /bot|crawl|spider|slurp|preview|facebookexternalhit|headless|lighthouse/i;
 const EMOJI = new Set(["👏", "🔥", "💪", "🏃"]);
-const TARGET_TABLE: Record<string, string> = { featured_run: "featured_runs", race: "race_plans" };
+const TARGET_TABLE: Record<string, string> = { featured_run: "featured_runs", race: "race_plans", milestone: "milestones" };
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -61,7 +61,7 @@ serve(async (req) => {
   // Cheer: validate the target belongs to this profile.
   const targetType = body?.targetType ?? "profile";
   const targetId = targetType === "profile" ? null : body?.targetId ?? "";
-  if (!["profile", "featured_run", "race"].includes(targetType) || (targetId !== null && !UUID.test(targetId))) {
+  if (!["profile", "featured_run", "race", "milestone"].includes(targetType) || (targetId !== null && !UUID.test(targetId))) {
     return json({ error: "Invalid cheer" }, 400);
   }
   if (targetId) {
