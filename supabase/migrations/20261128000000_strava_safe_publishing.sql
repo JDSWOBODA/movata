@@ -40,7 +40,8 @@ alter table public.milestones add column if not exists needs_review boolean not 
 
 update public.milestones
    set needs_review = true
- where key is not null and kind in ('yearly_distance', 'streak', 'long_run');
+ where key is not null and key not like 'h:%' -- only rows not yet migrated, so re-running is safe
+   and kind in ('yearly_distance', 'streak', 'long_run');
 
 -- Opaque keys: 'h:' + first 24 hex chars of sha256(key). Same formula as src/lib/hash.ts.
 update public.milestones
