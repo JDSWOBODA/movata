@@ -14,10 +14,11 @@ export const formatDuration = (seconds: number) => {
   return `${minutes}:${String(remaining).padStart(2, "0")}`;
 };
 
-export const formatPace = (secondsPerKm?: number, unit: "mi" | "km" = "mi") => {
+/** "7:52/mi", or just "7:52" with withUnit = false (when the distance already shows the unit). */
+export const formatPace = (secondsPerKm?: number, unit: "mi" | "km" = "mi", withUnit = true) => {
   if (!secondsPerKm) return "—";
   const seconds = unit === "mi" ? secondsPerKm * 1.609344 : secondsPerKm;
-  return `${formatDuration(Math.round(seconds))}/${unit}`;
+  return withUnit ? `${formatDuration(Math.round(seconds))}/${unit}` : formatDuration(Math.round(seconds));
 };
 
 export const compactNumber = (value: number) =>

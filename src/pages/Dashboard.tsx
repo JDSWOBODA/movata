@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Activity, ArrowDown, ArrowUp, Bookmark, CalendarCheck2, CalendarDays, CalendarPlus, Check, Flag, EyeOff, Flame, Globe2, LoaderCircle, Lock, LogOut, Medal, Pencil,
-  Link2, MousePointerClick, Plus, QrCode, RefreshCw, Route, Settings, Share2, ShoppingBag, Sparkles, Star, Trash2, Trophy, Unplug, UserRound, Zap,
+  ImagePlus, Link2, MousePointerClick, Plus, QrCode, RefreshCw, Route, Settings, Share2, ShoppingBag, Sparkles, Star, Trash2, Trophy, Unplug, UserRound, Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -468,8 +468,14 @@ const Dashboard = () => {
             ) : (
               <ol className="grid gap-4 md:grid-cols-2">
                 {own.featuredRuns.map((run, index) => (
-                  <li key={run.id} className="space-y-2">
-                    <RunCard activity={featuredRunToActivity(run)} unit={unit} compact showPhoto />
+                  <li key={run.id} className="flex flex-col gap-2">
+                    <RunCard activity={featuredRunToActivity(run)} unit={unit} compact showPhoto className="flex-1" />
+                    {!run.photo_path && !run.needs_review ? (
+                      <button type="button" onClick={() => openEdit(run)}
+                        className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-stone-300 px-3 py-2 text-xs font-medium text-stone-600 hover:border-emerald-400 hover:text-emerald-800">
+                        <ImagePlus className="h-3.5 w-3.5" />Add a photo to this run
+                      </button>
+                    ) : null}
                     {run.needs_review ? (
                       <p className="flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900"><EyeOff className="h-3.5 w-3.5 shrink-0" />Hidden from visitors: filled in from Strava. Review and save to publish.</p>
                     ) : null}

@@ -10,15 +10,24 @@ interface RunCardProps {
   compact?: boolean;
   /** Show the run's first photo (runner uploads only; sample data keeps its route sketch). */
   showPhoto?: boolean;
+  className?: string;
 }
 
-export const RunCard = ({ activity, unit = "mi", compact = false, showPhoto = false }: RunCardProps) => (
-  <article className="group min-w-[280px] overflow-hidden rounded-[1.4rem] border border-stone-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:min-w-0">
+const Stat = ({ label, value }: { label: string; value: string }) => (
+  <div className="min-w-0">
+    <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">{label}</p>
+    <p className="whitespace-nowrap font-mono text-base font-semibold tabular-nums text-stone-950 sm:text-lg">{value}</p>
+  </div>
+);
+
+/** A run tile. Fills its grid cell (flex column) so tiles in a row line up at the same height. */
+export const RunCard = ({ activity, unit = "mi", compact = false, showPhoto = false, className = "" }: RunCardProps) => (
+  <article className={`group flex min-w-[280px] flex-col overflow-hidden rounded-[1.4rem] border border-stone-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:min-w-0 sm:p-5 ${className}`}>
     {showPhoto && activity.photos?.[0] ? (
-      <img src={activity.photos[0]} alt="" loading="lazy" className="-mx-4 -mt-4 mb-4 aspect-[16/9] w-[calc(100%+2rem)] max-w-none object-cover" />
+      <img src={activity.photos[0]} alt="" loading="lazy" className="-mx-4 -mt-4 mb-4 aspect-[16/9] w-[calc(100%+2rem)] max-w-none object-cover sm:-mx-5 sm:-mt-5 sm:w-[calc(100%+2.5rem)]" />
     ) : null}
     <div className="flex items-start justify-between gap-3">
-      <div>
+      <div className="min-w-0">
         <div className="flex flex-wrap gap-1.5">
           {activity.highlightTypes?.slice(0, 2).map((highlight) => (
             <Badge key={highlight} variant="secondary" className="rounded-full bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-50">
@@ -33,22 +42,15 @@ export const RunCard = ({ activity, unit = "mi", compact = false, showPhoto = fa
         </div>
         <h3 className="mt-3 text-lg font-semibold leading-tight tracking-tight text-stone-950">{activity.title}</h3>
       </div>
-      <span className="rounded-full border border-stone-200 px-2.5 py-1 text-xs font-medium text-stone-500">{activity.provider.replace("_", " ")}</span>
+      {activity.provider !== "manual" ? (
+        <span className="shrink-0 rounded-full border border-stone-200 px-2.5 py-1 text-xs font-medium text-stone-500">{activity.provider.replace("_", " ")}</span>
+      ) : null}
     </div>
 
-    <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl bg-stone-50 p-3">
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">Distance</p>
-        <p className="font-mono text-lg font-semibold tabular-nums text-stone-950">{formatDistance(activity.distanceMeters, unit)}</p>
-      </div>
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">Pace</p>
-        <p className="font-mono text-lg font-semibold tabular-nums text-stone-950">{formatPace(activity.averagePaceSecondsPerKm, unit)}</p>
-      </div>
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">Time</p>
-        <p className="font-mono text-lg font-semibold tabular-nums text-stone-950">{formatDuration(activity.movingTimeSeconds)}</p>
-      </div>
+    <div className="mt-4 grid grid-cols-3 gap-3 rounded-2xl bg-stone-50 p-3">
+      <Stat label="Distance" value={formatDistance(activity.distanceMeters, unit)} />
+      <Stat label="Pace" value={formatPace(activity.averagePaceSecondsPerKm, unit, false)} />
+      <Stat label="Time" value={formatDuration(activity.movingTimeSeconds)} />
     </div>
 
     {!compact ? (
@@ -62,6 +64,8 @@ export const RunCard = ({ activity, unit = "mi", compact = false, showPhoto = fa
       </div>
     ) : null}
 
+    {/* Everything below sits at the bottom, so dates and links line up across a row. */}
+    <div className="mt-auto" />
     <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm text-stone-500">
       <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-4 w-4" />{formatDate(activity.localDate)}</span>
       {activity.location ? <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4" />{activity.location}</span> : null}

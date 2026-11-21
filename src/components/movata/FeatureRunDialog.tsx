@@ -127,7 +127,7 @@ export const FeatureRunDialog = ({ open, onOpenChange, draft, reference, mode, u
             </div>
           ) : null}
 
-          <ImagePicker kind="run" label="Photo (optional)" value={photo} onChange={setPhoto} onUploaded={(path) => setUploaded((paths) => [...paths, path])} />
+          <ImagePicker kind="run" label="Photo: shows at the top of the card (optional)" value={photo} onChange={setPhoto} onUploaded={(path) => setUploaded((paths) => [...paths, path])} />
 
           <div className="space-y-2">
             <Label htmlFor="fr-title">Title</Label>

@@ -112,21 +112,22 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
 
         <section className="overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-sm">
           {coverUrl ? <img src={coverUrl} alt="" className="aspect-[3/1] w-full object-cover" /> : null}
-          <div className="p-6 sm:p-8">
-          <div className={`flex flex-col gap-5 sm:flex-row sm:items-center ${coverUrl ? "-mt-16 sm:-mt-20" : ""}`}>
+          <div className="px-6 pb-6 sm:px-8 sm:pb-8">
+          {/* Large avatar overlaps the bottom edge of the cover; name and details sit below it, clear of the image. */}
+          <div className={coverUrl ? "-mt-16 sm:-mt-24" : "pt-6 sm:pt-8"}>
             {avatarUrl ? (
-              <img src={avatarUrl} alt={name} className="h-20 w-20 shrink-0 rounded-full border-4 border-white object-cover shadow-sm sm:h-24 sm:w-24" />
+              <img src={avatarUrl} alt={name} className="relative h-32 w-32 rounded-full border-[6px] border-white bg-white object-cover shadow-md sm:h-44 sm:w-44" />
             ) : (
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-4 border-white bg-emerald-700 text-2xl font-semibold text-white shadow-sm">{initials}</div>
+              <div className="relative flex h-32 w-32 items-center justify-center rounded-full border-[6px] border-white bg-emerald-700 text-4xl font-semibold text-white shadow-md sm:h-44 sm:w-44 sm:text-5xl">{initials}</div>
             )}
-            <div className="min-w-0">
-              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{name}</h1>
-              <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-stone-500">
-                <span>@{profile.username}</span>
-                {profile.location ? <span className="inline-flex items-center gap-1"><MapPin className="h-4 w-4" />{profile.location}</span> : null}
-                {profile.running_since ? <span className="inline-flex items-center gap-1"><CalendarDays className="h-4 w-4" />Running since {profile.running_since.slice(0, 4)}</span> : null}
-              </p>
-            </div>
+          </div>
+          <div className="mt-4 min-w-0">
+            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{name}</h1>
+            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-stone-500">
+              <span>@{profile.username}</span>
+              {profile.location ? <span className="inline-flex items-center gap-1"><MapPin className="h-4 w-4" />{profile.location}</span> : null}
+              {profile.running_since ? <span className="inline-flex items-center gap-1"><CalendarDays className="h-4 w-4" />Running since {profile.running_since.slice(0, 4)}</span> : null}
+            </p>
           </div>
           {profile.bio ? <p className="mt-5 max-w-3xl whitespace-pre-line text-lg leading-8 text-stone-700">{profile.bio}</p> : null}
           {links.data?.length ? <div className="mt-5"><LinkBlocks links={links.data} trackClicks={!isOwner && profile.is_public} /></div> : null}
@@ -146,10 +147,10 @@ export const PublicProfile = ({ profile }: { profile: ProfileRow }) => {
           {featured.isLoading ? (
             <p className="flex items-center gap-2 text-stone-500"><LoaderCircle className="h-4 w-4 animate-spin" />Loading runs…</p>
           ) : runs.length ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-5 md:grid-cols-2">
               {runs.map((run) => (
-                <div key={run.id} id={`run-${run.id}`} className="scroll-mt-6 space-y-2">
-                  <RunCard activity={run} unit={profile.preferred_unit} compact showPhoto />
+                <div key={run.id} id={`run-${run.id}`} className="flex scroll-mt-6 flex-col gap-2">
+                  <RunCard activity={run} unit={profile.preferred_unit} compact showPhoto className="flex-1" />
                   {profile.is_public ? <CheerButton profileId={profile.id} type="featured_run" targetId={run.id} count={cheerCount(cheers.data, "featured_run", run.id)} readOnly={isOwner} /> : null}
                 </div>
               ))}
